@@ -1,0 +1,53 @@
+<div id="preform">
+</div>
+<div id="stylized" class="myform">
+<%= form_for(@leave) do |f| %>
+ 
+<h1>Leaves Application Form</h1>
+<p>Data entry page for leaves</p>
+<div class="errormsg" <%if @validates.nil? %>style="visibility:hidden" <%end%> >es
+  <div id="msg" style="position: fixed;padding-top:55px;top:100px;border:2px solid;box-shadow: 10px 10px 5px blue;  min-height:30px ; min-width: 750px;background: #81DAF5">
+  <% unless @validates.nil?%>
+  <% @validates.each do |k,v|%>
+     <%=Staff.human_attribute_name(k)%>&nbsp;<%=v%><br><br>
+  <% end %>
+  <br>
+  <%end%>
+  <input type="button" value="Ok" onclick="jQuery('.errormsg').css('visibility','hidden') ;" >
+  </div> 
+</div>
+
+
+
+  <label><%= "Leave Date" %>
+    <span class="small">(MM/DD/YYYY)</span>
+  </label>
+  <input class="datepicker" name="leave[schedule_date]" value="<%=@leave.schedule_date.nil? ? '' : @leave.schedule_date.strftime('%m/%d/%Y')%>" type="text">
+
+  <label><%= "Staff" %>
+    <span class="small"></span>
+  </label>
+  <%=  select("leave", "staff_id", @staffs.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, { :prompt => 'Select' } , :required => true, :onChange => '' )  %>
+
+  <div style="width:500px">
+  <%=radio_button_tag 'leave[time]', 'AM/PM', (@leave.time.eql? "AM/PM")  , :style => "width:15px"%>
+  
+  <label ><%= "Whole Day" %>&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+    <span class="small"></span>
+  </label>
+  <%=radio_button_tag 'leave[time]', 'AM', (@leave.time.eql? "AM") , :style => "width:15px"%>
+  <label><%= "Morning Only" %>&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+    <span class="small"></span>
+  </label>
+  <%=radio_button_tag 'leave[time]', 'PM', (@leave.time.eql? "PM") , :style => "width:15px"%>
+  <label><%= "Afternoon Only" %>&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+    <span class="small"></span>
+  </label>
+  </div>
+ 
+  <div>
+  <input name="commit" type="submit" value="Save" onclick="//this.setAttribute('disabled', 'disabled');">
+  <input type="button" value="Cancel" onclick="document.location.href = '../../leaves'" >
+  </div>   
+<% end %>
+</div>

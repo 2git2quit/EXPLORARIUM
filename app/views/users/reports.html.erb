@@ -1,0 +1,48 @@
+<script>
+
+function filterReport() 
+ {
+ var report_id = jQuery('#user_report_id').val();
+ var params = 'report_frequency=' + jQuery('#report_frequency').val() ;
+ params = params + "&report_id="+ jQuery('#report_id').val() ;
+ params = params + "&report_year="+ jQuery('#report_year').val() ;
+ params = params + "&program_id="+ jQuery('#report_program_id').val() ;
+ params = params + "&level_id="+ jQuery('#report_level_id').val() ;
+ params = params + "&student_id="+ jQuery('#report_student_id').val() ;
+
+ AJC("filter_report", "post", params);
+}
+
+</script>
+<div id="filters" style="padding:16px;background:#A9BCF5">
+<label>&nbsp;<%= "Report"%>&nbsp;</label>
+<%=  select("report", "id", @reports.collect {|p| [ "#{p[1]}", p[0]] }, { :prompt => 'Select' }, :onChange => 'filterReport()'  , :selected => 1)  %>
+<label>&nbsp;<%= "Frequency"%>&nbsp;</label>
+<%=  select("report", "frequency", @frequency.collect {|p| [ "#{p}", p ]}, { :prompt => 'Select' }, :onChange => 'filterReport()' , :selected => :DAILY, :style => 'width:150px:position:relative;top: -10px' )  %>
+<label>&nbsp;<%= "Year"%>&nbsp;</label>
+<%=  select("report", "year", @years.collect {|p| [ "#{p}", p ]}, { :prompt => 'Select' }, :onChange => 'filterReport()' , :style => 'width:150px:position:relative;top: -10px' )  %>
+<label>&nbsp;<%= "Program"%>&nbsp;</label>
+<%=  select("report", "program_id", @programs.collect {|p| [ "#{p.name}", p.id ]}, { :prompt => 'Select' }, :onChange => 'filterReport()' , :style => 'width:150px:position:relative;top: -10px' )  %>
+<label>&nbsp;<%= "Level"%>&nbsp;</label>
+<%=  select("report", "level_id", @levels.collect {|p| [ "#{p.level_name}", p.id ]}, { :prompt => 'Select' }, :onChange => 'filterReport()' , :style => 'width:150px:position:relative;top: -10px' )  %>
+<br>
+<label>&nbsp;<%= "Student"%>&nbsp;</label>
+<%=  select("report", "student_id", @students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ]}, { :prompt => 'Select' }, :onChange => 'filterReport()' , :style => 'width:150px:position:relative;top: -10px' )  %>
+
+</div>
+
+<div id="stylized-report" class="myreport">
+ 
+<div id="dtable" style="position:relative;top:0px;">
+
+</div>
+
+</div>
+
+
+
+
+<script>
+  jQuery("#alerts").css("visibility","hidden"); 
+ 
+</script>

@@ -1,0 +1,15 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Payment:</b>
+  <%= @month_covered.payment_id %>
+</p>
+
+<p>
+  <b>Month:</b>
+  <%= @month_covered.month %>
+</p>
+
+
+<%= link_to 'Edit', edit_month_covered_path(@month_covered) %> |
+<%= link_to 'Back', month_covereds_path %>

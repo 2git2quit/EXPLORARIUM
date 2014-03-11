@@ -1,0 +1,133 @@
+<h1><%=session[:company]%></h1>
+<%    
+months = ['JANUARY','FEBRUARY','MARCH', 'APRIL', 'MAY', 'JUNE','JULY', 'AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
+%>
+<h3><%=title%></h3>
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Month</th>
+    <th>Unpaid Enrollment Fee</th>
+    <th>Unpaid Registration Fee</th>
+  </tr>
+</thead>
+<tbody>
+<%#total_amount_paid = 0.00%>
+<%#total_newfee = 0.00%>
+<%
+ current_mm = "January 2000"
+ current_ww = 1
+ firstpass = true
+ unpaid_enrollment_fee = 0
+ unpaid_registration_fee = 0
+ bg = ""
+%>
+<% objects.each do |p| %> 
+  <%
+    if (firstpass)
+      current_mm = p.payment_date.to_date().strftime('%B %Y')
+      if (p.payment_date.to_date().strftime('%d').to_i > 0 && p.payment_date.to_date().strftime('%d').to_i < 8)
+      	  current_ww = 1     
+      elsif (p.payment_date.to_date().strftime('%d').to_i > 7 && p.payment_date.to_date().strftime('%d').to_i < 15)
+      	  current_ww = 2     
+      elsif (p.payment_date.to_date().strftime('%d').to_i > 14 && p.payment_date.to_date().strftime('%d').to_i < 22)
+      	  current_ww = 3     
+      elsif (p.payment_date.to_date().strftime('%d').to_i > 21)
+      	  current_ww = 4     
+      end
+    end
+  %>
+  <%  stat,msgs,billing,code = p.student.to_be_billed? %>
+  <% if stat %>
+      
+      <% if ("#{current_mm}" != "#{p.payment_date.strftime('%B %Y')}" ) %>
+       <tr>
+       <td style="font-size:10px"><%= current_mm%></td>
+       <td style="font-size:10px"><%= current_ww%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_enrollment_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_registration_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       </tr>
+       <%
+        if (code.include? -3)
+          unpaid_enrollment_fee = billing[:program_cost_sum]- billing[:paid_amount_sum]
+        else  
+          unpaid_enrollment_fee = 0
+        end  
+        if (code.include? -4)
+          unpaid_registration_fee = billing[:program_enrollment_fee]-billing[:paid_enrollment_fee_sum]
+        else  
+          unpaid_registration_fee = 0
+        end  
+        
+      else
+        firstpass = false
+        if (code.include? -3)
+           unpaid_enrollment_fee =  unpaid_enrollment_fee + ( billing[:program_cost_sum]- billing[:paid_amount_sum])
+        end   
+        if (code.include? -4)
+          unpaid_registration_fee = billing[:program_enrollment_fee]-billing[:paid_enrollment_fee_sum]
+        end
+
+      end # IF
+      current_mm = p.payment_date.to_date().strftime('%B %Y')
+       %>
+   <%end # if stat%>
+<%end # each %> 
+
+         <% if (unpaid_enrollment_fee > 0 ) %>
+       <tr>
+       <td style="font-size:10px"><%= current_mm%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_enrollment_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_registration_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       </tr>
+       <%end%>
+
+</tbody>
+
+</table>
+
+<script>
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+  jQuery("#alerts").css("visibility","hidden"); 
+</script>
+

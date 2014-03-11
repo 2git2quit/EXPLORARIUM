@@ -1,0 +1,27 @@
+<% unless @history.nil?%>
+ <label><%= "TOTAL HOURS" %>
+     <span class="small">Total hours consumed</span>
+  </label> 
+
+<%
+     student = Student.find(student_id) 
+     options = Hash.new
+     options[:old_hours] = params[:old_hours].to_f
+     options[:new_hours] = params[:hours].to_f
+     
+     stat,msgs,billing = student.to_be_billed?(options)
+
+%>
+<input type="text"  class="numeric" style="width:50px" disabled value="<%=(number_with_precision(billing[:attended_hours], :precision => 2,:delimiter => session[:delimiter]) || 0)%>" >
+
+<label><%= "EXPECTED HOURS" %>
+     <span class="small">Total hours expected</span>
+</label> 
+<input type="text"  class="numeric" style="width:50px" disabled value="<%=(number_with_precision(billing[:expected_hours], :precision => 2 ,:delimiter => session[:delimiter]) || 0)%>" >
+<div class="errormsg" <%if msgs.empty? %>style="visibility:hidden" <%end%> >
+  <div id="msg" style="position: fixed;padding-top:25px;top:100px;border:2px solid;box-shadow: 10px 10px 5px blue;  width: 750px;background: #81DAF5">
+   <%=msgs.inspect%><br><br>
+   <input type="button" value="Ok" onclick="jQuery('.errormsg').css('visibility','hidden') ;" >
+  </div> 
+</div>
+<%end%>

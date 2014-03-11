@@ -1,0 +1,76 @@
+<script>
+
+ jQuery(document).ready(function() {
+	jQuery('.dt').dataTable( {
+		"bPaginate": false,
+		"bLengthChange": true,
+		"bFilter": false,
+		"bSort": true,
+		"bInfo": true,
+		"bAutoWidth": true
+		});
+ } );
+ 
+ </script>
+ 
+<div id="stylized" class="myform">
+<h1>PROGRAM INFORMATION</h1>
+<p>Data entry for program information</p>
+<%= form_for(@program) do |f| %>
+<div class="errormsg" <%if @validation_error.nil? %>style="visibility:hidden" <%end%> >
+   <%=@validation_error%>
+</div>
+<div class="errormsg" <%if @validates.nil? %>style="visibility:hidden" <%end%> >es
+  <div id="msg" style="position: fixed;padding-top:55px;top:100px;border:2px solid;box-shadow: 10px 10px 5px blue;  min-height:30px ; min-width: 750px;background: #81DAF5">
+  <% unless @validates.nil?%>
+  <% @validates.each do |k,v|%>
+     <%=Program.human_attribute_name(k)%>&nbsp;<%=v%><br><br>
+  <% end %>
+  <br>
+  <%end%>
+  <input type="button" value="Ok" onclick="jQuery('.errormsg').css('visibility','hidden') ;" >
+  </div> 
+</div>
+<br>
+  <%=f.hidden_field :id%>
+  
+  <label><%= f.label :name %>
+    <span class="small">Name of program</span>
+  </label>  
+   <%= f.text_field :name , :required => true%>
+
+
+  <label><%= "Tuition Fee" %>
+    <span class="small">tuition fee</span>
+  </label>  
+   <%= f.text_field :cost  , :required => true%>
+
+
+  <label><%= f.label :number_of_sessions %>
+    <span class="small"></span>
+  </label>  
+    <%= f.text_field :number_of_sessions  , :required => true%>
+
+  <label><%= f.label :hours_per_session %>
+    <span class="small"></span>
+  </label>  
+    <%= f.text_field :hours_per_session  , :required => true%>
+
+
+  <label><%= "Payment Cycle" %>
+    <span class="small"></span>
+  </label>  
+  <%=  select("program", "cycle", @cycles.collect {|p| [ "#{p[1]}", p[0]] }, { :prompt => 'Select' }, :onChange => ''  , :selected => @program.cycle , :required => true)  %>
+   
+    
+  <label><%= "Registration Fee" %>
+    <span class="small">Fee for new student</span>
+  </label>  
+    <%= f.text_field :new_student_fee , :required => true %>
+  <br>
+    <%#= select_tag 'schedules[0][level_id]', options_for_select(@levels.collect {|p| [ p.level_code, p.id ] }.insert(0, 'Select'), @schedules.nil? ? 0 : @schedules["0"]["level_id"]) %>
+ <div><input name="commit" type="submit" value="Save" onclick="//this.setAttribute('disabled', 'disabled');"><input type="button" value="Cancel" onclick="document.location.href = '../../programs'" ></div>   
+<% end %>
+</div>
+
+

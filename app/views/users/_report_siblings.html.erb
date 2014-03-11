@@ -1,0 +1,71 @@
+
+<h1><%=session[:company]%></h1>
+<div id="total"><h3><%=title%> </h3></div>
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Student</th>
+    <th>Enrolled Siblings</th>
+    <th>NOT Enrolled Siblings</th>
+  </tr>
+</thead>
+<tbody>
+<% objects.each do |p| %>
+  <%if !p.siblings["0"]["name"].blank? || !p.siblings["1"]["name"].blank? || !p.siblings["2"]["name"].blank?%>
+  <tr>
+    <td style="font-size:10px"><%= p.lastname%>,&nbsp;<%= p.firstname%> </td>
+    <td style="font-size:10px;"><%= (p.siblings["0"]["enrolled"] == 'Y') ? p.siblings["0"]["name"] : '' %><br><%= (p.siblings["1"]["enrolled"] == 'Y') ? p.siblings["1"]["name"] : ''%><br><%= (p.siblings["2"]["enrolled"] == 'Y') ? p.siblings["2"]["name"] : ''%>  </td>
+    <td style="font-size:10px;"><%= (p.siblings["0"]["enrolled"] != 'Y') ? p.siblings["0"]["name"] : ''%><br><%= (p.siblings["1"]["enrolled"] != 'Y')  ? p.siblings["1"]["name"] : ''%><br> <%= (p.siblings["2"]["enrolled"] != 'Y') ? p.siblings["2"]["name"] : ''%>  </td>
+  </tr>
+  <%end%>
+<% end %>
+</tbody>
+
+</table>
+
+<script>
+ 
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+  jQuery("#alerts").css("visibility","hidden"); 
+</script>
+

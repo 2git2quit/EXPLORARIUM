@@ -1,0 +1,216 @@
+<script>
+function toggle_checkbox(t) { 
+  if (t.checked) 
+    t.value = "Y"
+  else 
+    t.value = "N"	  
+  
+  	  
+}
+
+function validateDate(t) {
+	var d = new Date(t)
+	if (d.getDay() != 1)  {
+		alert('Start of week must be a MONDAY');
+		return false;
+	}
+	
+}
+
+function printDailyTracker(j) 
+ {
+  var d = jQuery("#schedule_date_"+j).val();
+  var params = 'schedule_date=' + d ;
+  jQuery("#tracker_main").html("");
+ AJC('print_tracker', "post", params);
+}
+
+
+   function print_report() {
+      jQuery("#report_buttons").css("visibility","hidden"); 
+      jQuery(".menu3").css("visibility","hidden"); 
+      jQuery(".menu3sub").css("visibility","hidden"); 
+      window.print();
+      jQuery("#report_buttons").css("visibility","visible"); 
+      jQuery(".menu3").css("visibility","visible"); 
+      jQuery(".menu3sub").css("visibility","visible"); 
+   }
+
+jQuery("#alerts").css("visibility","hidden"); 
+
+
+</script>
+
+<%    @colorschema = ['#E3EEFB','#D9F8EB','#F5F8D8','#FBF1D4','#FAE2DF','#FADCFA','#BDD9F9','#BDF9E0','#F1FAA2','#FAE3A4','#FAC4BD','#F7ACF8' , '#7222FC','#22FC8B','#F1FC22','#FCC222','#FC229D','#FC22F4'] %>
+<div id="daily_tracker_form" ></div>
+<div id="tracker_main" >
+<%= form_for(@schedule , :remote => true) do |f| %>
+<div style="margin:0;padding:0;display:inline">
+</div>
+
+<div>
+  <input name="commit" type="submit" value="<<"  <%=!@current_week ? 'disabled' : '' %> >
+  <input name="commit" type="submit" value=">>"  <%= @current_week ? 'disabled' : '' %> >
+  <input name="commit" type="submit" value="Save" >
+  <input type="button" value="Cancel" onclick="document.location.href = '../../schedules'" >
+  <input name="commit" type="submit" value="Go to week" > 
+  <input class="mondaypicker" name="session_date"  value="<%=@monday.strftime('%m/%d/%Y')%>" type="text" onblur="validateDate(this.value);">
+</div>   
+<input type="hidden" name="current_week" value="<%=@current_week%>">
+
+<div id="stylized" class="myform" style="width:600%;">
+
+<table border=0 class="dt" >
+<thead >
+  <tr >
+    <% @daysofweek.each_with_index do |days,jx|%>
+    <th style="text-align:center;" colspan=2>
+       <%=days.strftime('%A').upcase%>&nbsp;<input id="schedule_date_<%=jx%>" style="width:80px;" type=date value=<%=days.strftime('%m/%d/%Y')%> disabled ><br>
+       <a onclick="printDailyTracker(<%=jx%>)" style="cursor:pointer">[Print daily tracker form]</a>
+    </th>
+     <% end %>
+  </tr>
+</thead>
+
+
+<tbody> 
+<%t1 = Hash.new%>
+<%t2 = Hash.new%>
+<%sc1 = Array.new%>
+<%sc2 = Array.new%>
+
+ <%j = 0%>
+ <%@timeslot.each do |t|%>
+
+   <tr>	 
+    <%6.times do |i|%>
+
+     <%if ((t[:id] & 1) == 1) %>
+    	  <%t2 = t%>    
+          <td style="background:<%=@colorschema[i+6]%>;font-family: Verdana, Arial, Helvetica, sans-serif;font-size:14px;"><%=t1[:name]%></td>
+          <td style="background:<%=@colorschema[i+6]%>;font-family: Verdana, Arial, Helvetica, sans-serif;font-size:14px;"><%=t2[:name]%>
+      <%else%>
+         <%t1 = t%>
+      <%end%>
+    <%end%>  <%#6.time  - time slot%>
+    </tr>
+    
+    <tr>	 
+    
+    <%6.times do |i|%>
+       <%if ((t[:id] & 1) == 1) %>
+	   <%t2 = t%>
+           <%sc1 = Schedule.find(:all,:conditions => ["schedule_date = ? and timeslot_id = ? ", @daysofweek[i],j-1 ])%>
+           <%sc2 = Schedule.find(:all,:conditions => ["schedule_date = ? and timeslot_id = ? ", @daysofweek[i],j ])%>
+	   <td>
+                    
+	   <%# START ------------ 1st half hour  ---------------------%>
+	    <%4.times do |tb|%>
+            <div id="#{tb}" >
+               <table id="example2"  style="font-family: Verdana, Arial, Helvetica, sans-serif;font-size:12px;">
+               <thead><tr style="background:<%=@colorschema[i+12]%>"><th>TABLE</th><th>TEACHER</th><th>STUDENTS</th></tr></thead>
+               <tbody>
+                 <tr style="background:<%=((tb & 1) == 1) ? @colorschema[i+6] : @colorschema[i]%>;">
+                    <td><%=tb+1%></td>
+                    <td>
+                    &nbsp;&nbsp;<%=t1[:name]%><br><br>
+                    <% if t1[:name].include? "AM"%>
+                    <%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][staff_id]", options_for_select(@teachers[i][:am].collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].staff_id) , :include_blank => true %>
+                    <% else %>
+                    <%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][staff_id]", options_for_select(@teachers[i][:pm].collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].staff_id) , :include_blank => true %>
+                    <% end %>
+                     <input type="hidden" name="schedule[<%=t1[:id]%>][<%=i%>][<%=tb%>][schedule_date]" value="<%=@daysofweek[i]%>">
+                     <% @students = Student.order(:lastname,:firstname).find(:all,:conditions => ["id in (select student_id from payments where start_date <= ? and valid_date >= ?)",@daysofweek[i],@daysofweek[i]]) %>
+                     <br><br>
+                     Assesment Schedules:<br>
+                     &nbsp;<input type="text" name="schedule[<%=t1[:id]%>][<%=i%>][<%=tb%>][memo1]" value="<%=sc1[tb].memo1%>" >
+                     &nbsp;<input type="text" name="schedule[<%=t1[:id]%>][<%=i%>][<%=tb%>][memo2]" value="<%=sc1[tb].memo2%>" >
+                     Class Waitlists:<br>
+                     &nbsp;<input type="text" name="schedule[<%=t1[:id]%>][<%=i%>][<%=tb%>][memo3]" value="<%=sc1[tb].memo3%>" >
+                     &nbsp;<input type="text" name="schedule[<%=t1[:id]%>][<%=i%>][<%=tb%>][memo4]" value="<%=sc1[tb].memo4%>" >
+                    </td>
+                    <td>
+                       <%= check_box_tag "schedule[#{t1[:id]}][#{i}][#{tb}][attended_1]", "#{sc1[tb].attended_1}", sc1[tb].attended_1 == "Y" , :style => "width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][student_1_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].student_1_id) , :include_blank => true %>
+                       <%= check_box_tag "schedule[#{t1[:id]}][#{i}][#{tb}][attended_2]", "#{sc1[tb].attended_2}", sc1[tb].attended_2 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][student_2_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].student_2_id) , :include_blank => true , :style => "position:relative;margin-left:30px;"%>
+                       <%= check_box_tag "schedule[#{t1[:id]}][#{i}][#{tb}][attended_3]", "#{sc1[tb].attended_3}", sc1[tb].attended_3 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][student_3_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].student_3_id) , :include_blank => true , :style => "position:relative;margin-left:30px;" %>
+                       <%= check_box_tag "schedule[#{t1[:id]}][#{i}][#{tb}][attended_4]", "#{sc1[tb].attended_4}", sc1[tb].attended_4 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][student_4_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].student_4_id) , :include_blank => true , :style => "position:relative;margin-left:30px;"%>
+                       <%= check_box_tag "schedule[#{t1[:id]}][#{i}][#{tb}][attended_5]", "#{sc1[tb].attended_5}", sc1[tb].attended_5 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][student_5_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].student_5_id) , :include_blank => true , :style => "position:relative;margin-left:30px;"%>
+                       <%= check_box_tag "schedule[#{t1[:id]}][#{i}][#{tb}][attended_6]", "#{sc1[tb].attended_6}", sc1[tb].attended_6 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t1[:id]}][#{i}][#{tb}][student_6_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc1[tb].student_6_id) , :include_blank => true , :style => "position:relative;margin-left:30px;" %>
+                    </td>
+                 </tr>
+               </tbody>
+               </table>
+            </div>
+            <%end%> <%#4.times%> 
+<%# END ------------ 1st half hour  ---------------------%>
+           </td>
+           <td>
+<%# START ------------ 2nd half hour  ---------------------%>
+	    <%4.times do |tb|%>
+            <div id="#{tb}" >
+               <table id="example2"  style="font-family: Verdana, Arial, Helvetica, sans-serif;font-size:12px;">
+               <thead><tr style="background:<%=@colorschema[i+12]%>"><th>TABLE</th><th>TEACHER</th><th>STUDENTS</th></tr></thead>
+               <tbody>
+                 <tr style="background:<%=((tb & 1) == 1) ? @colorschema[i+6] : @colorschema[i]%>">
+                    <td><%=tb+1%></td>
+                    <td>
+                    <%=t2[:name]%><br><br>
+                    <% if t2[:name].include? "AM"%>
+                    <%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][staff_id]", options_for_select(@teachers[i][:am].collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].staff_id) , :include_blank => true %>
+                    <% else %>
+                    <%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][staff_id]", options_for_select(@teachers[i][:pm].collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].staff_id) , :include_blank => true %>
+                    <% end %>
+                     <input type="hidden" name="schedule[<%=t2[:id]%>][<%=i%>][<%=tb%>][schedule_date]" value="<%=@daysofweek[i]%>">
+                     <% @students = Student.order(:lastname,:firstname).find(:all,:conditions => ["id in (select student_id from payments where start_date <= ? and valid_date >= ?)",@daysofweek[i],@daysofweek[i]]) %>
+                     
+                     <br><br>
+                     Assesment Schedules:<br>
+                     &nbsp;<input type="text" name="schedule[<%=t2[:id]%>][<%=i%>][<%=tb%>][memo1]" value="<%=sc2[tb].memo1%>" >
+                     &nbsp;<input type="text" name="schedule[<%=t2[:id]%>][<%=i%>][<%=tb%>][memo2]" value="<%=sc2[tb].memo2%>" >
+                     Class Waitlists:<br>
+                     &nbsp;<input type="text" name="schedule[<%=t2[:id]%>][<%=i%>][<%=tb%>][memo3]" value="<%=sc2[tb].memo3%>" >
+                     &nbsp;<input type="text" name="schedule[<%=t2[:id]%>][<%=i%>][<%=tb%>][memo4]" value="<%=sc2[tb].memo4%>" >
+                    </td>
+                    <td>
+                       <%= check_box_tag "schedule[#{t2[:id]}][#{i}][#{tb}][attended_1]", "#{sc2[tb].attended_1}", sc2[tb].attended_1 == "Y" , :style => "width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][student_1_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].student_1_id) , :include_blank => true %>
+                       <%= check_box_tag "schedule[#{t2[:id]}][#{i}][#{tb}][attended_2]", "#{sc2[tb].attended_2}", sc2[tb].attended_2 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][student_2_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].student_2_id) , :include_blank => true , :style => "position:relative;margin-left:30px;" %>
+                       <%= check_box_tag "schedule[#{t2[:id]}][#{i}][#{tb}][attended_3]", "#{sc2[tb].attended_3}", sc2[tb].attended_3 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][student_3_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].student_3_id) , :include_blank => true , :style => "position:relative;margin-left:30px;"%>
+                       <%= check_box_tag "schedule[#{t2[:id]}][#{i}][#{tb}][attended_4]", "#{sc2[tb].attended_4}", sc2[tb].attended_4 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][student_4_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].student_4_id) , :include_blank => true , :style => "position:relative;margin-left:30px;"%>
+                       <%= check_box_tag "schedule[#{t2[:id]}][#{i}][#{tb}][attended_5]", "#{sc2[tb].attended_5}", sc2[tb].attended_5 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][student_5_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].student_5_id) , :include_blank => true , :style => "position:relative;margin-left:30px;"%>
+                       <%= check_box_tag "schedule[#{t2[:id]}][#{i}][#{tb}][attended_6]", "#{sc2[tb].attended_6}", sc2[tb].attended_6 == "Y" , :style => "position:relative;margin-left:-273px;margin-top:50px;width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%><%= select_tag "schedule[#{t2[:id]}][#{i}][#{tb}][student_6_id]", options_for_select(@students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, sc2[tb].student_6_id) , :include_blank => true , :style => "position:relative;margin-left:30px;" %>
+                    </td>
+                 </tr>
+               </tbody>
+               </table>
+            </div>
+            <%end%> <%#4.times%> 
+<%# END ------------ 2nd half hour  ---------------------%>
+           </td>
+        <%else%>
+           <%t1 = t%>
+           
+        <%end%> <%#if%>
+    <%end%> <%# 6.times  data%>
+    </tr>
+    
+    
+   <%j=j+1%>
+ <%end%> <%#timeslot.each%>
+</tbody>
+</table>
+</div>
+
+
+
+<br />
+
+</div>
+<%end%> <%#form_for%>
+</div>
+<script>
+     jQuery('.mondaypicker').datepicker( {
+     	     beforeShowDay: function(date){ 
+              var day = date.getDay(); 
+             return [day == 1,""]; }
+     });
+</script>

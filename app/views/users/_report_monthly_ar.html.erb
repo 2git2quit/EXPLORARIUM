@@ -1,0 +1,144 @@
+<h1><%=session[:company]%></h1>
+<%    
+months = ['JANUARY','FEBRUARY','MARCH', 'APRIL', 'MAY', 'JUNE','JULY', 'AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
+%>
+<div id="total"><h3><%=title%> &nbsp;&nbsp;TOTAL : </h3></div>
+
+<table class="report_table">
+<thead>
+  <tr>
+    <th></th>
+    <th>Month</th>
+    <th>Unpaid Enrollment Fee</th>
+    <th>Unpaid Registration Fee</th>
+  </tr>
+</thead>
+<tbody>
+<%#total_amount_paid = 0.00%>
+<%#total_newfee = 0.00%>
+<%
+ current_mm = "January 2000"
+ mm = 0
+ firstpass = true
+ bg = ""
+ unpaid_enrollment_fee = 0
+ unpaid_registration_fee = 0
+ total_unpaid_enrollment_fee = 0
+ total_unpaid_registration_fee = 0
+%>
+<% objects.each do |p| %> 
+  <%
+    if (firstpass)
+      current_mm = p.payment_date.to_date().strftime('%B %Y')
+      mm = p.payment_date.to_date().strftime('%-m')
+    end
+  %>
+  <%#stat,msgs,billing,code = p.student.to_be_billed? %>
+  <% stat,billing = p.student.must_bill?(p.id)  %>
+  <%
+        billing.each do |b|
+        unpaid_enrollment_fee = b[:receivable_tuitionfee]
+        unpaid_registration_fee = b[:receivable_newfee]
+        hours_expected = b[:hours_expected]
+        hours_consumed = b[:hours_consumed]
+       end
+    program = p.program.name
+
+  %>
+  <% if stat %>
+      
+      <% if ("#{current_mm}" != "#{p.payment_date.strftime('%B %Y')}" ) %>
+       <tr>
+       <td style="font-size:10px;visibility:hidden"><%=mm%></td>
+       <td style="font-size:10px"><%= current_mm%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_enrollment_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_registration_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       </tr>
+       <%
+        billing.each do |b|
+          unpaid_enrollment_fee = unpaid_enrollment_fee.to_f + b[:receivable_tuitionfee].to_f
+          unpaid_registration_fee = unpaid_registration_fee.to_f + b[:receivable_newfee].to_f
+          hours_expected = hours_expected.to_f + b[:hours_expected].to_f
+          hours_consumed = hours_consumed.to_f +  b[:hours_consumed].to_f
+          program = b[:program_name] 
+       end
+       total_unpaid_enrollment_fee = total_unpaid_enrollment_fee.to_f + unpaid_enrollment_fee.to_f
+       total_unpaid_registration_fee = total_unpaid_registration_fee.to_f + unpaid_registration_fee.to_f
+       %>
+      <%
+      else
+        firstpass = false
+        billing.each do |b|
+          unpaid_enrollment_fee = unpaid_enrollment_fee.to_f + b[:receivable_tuitionfee].to_f
+          unpaid_registration_fee = unpaid_registration_fee.to_f + b[:receivable_newfee].to_f
+          hours_expected = hours_expected.to_f + b[:hours_expected].to_f
+          hours_consumed = hours_consumed.to_f +  b[:hours_consumed].to_f
+          program = b[:program_name] 
+       end
+      end # IF
+      mm = p.payment_date.to_date().strftime('%-m')
+      current_mm = p.payment_date.to_date().strftime('%B %Y')
+       %>
+   <% end # if stat%>
+  <%end # each %> 
+
+       <% if (unpaid_enrollment_fee > 0 ) || (unpaid_registration_fee > 0)%>
+       <tr>
+       <td style="font-size:10px;visibility:hidden"><%=mm%></td>
+       <td style="font-size:10px"><%= current_mm%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_enrollment_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       <td style="font-size:10px;background:<%=bg%>"><%= number_with_precision(unpaid_registration_fee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       </tr>
+       <%end%>
+
+</tbody>
+
+</table>
+<%total=total_unpaid_enrollment_fee+total_unpaid_registration_fee%>
+<script>
+ jQuery("#total").html('<h3><%=title%> &nbsp;&nbsp;TOTAL : <div style="border:1px solid #000; display:inline-block;"><%=number_with_precision(total, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></div<</h3>');
+
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+  jQuery("#alerts").css("visibility","hidden"); 
+</script>
+

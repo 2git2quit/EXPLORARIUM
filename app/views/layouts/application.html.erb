@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome <%=session[:username]%></title>
+
+
+  <%= stylesheet_link_tag    "application", "demo_table_jui" , "jquery.dataTables" , "forms" , "jquery-ui", "TableTools" , "jquery.timepicker" , :media => "all" %>
+  <%= javascript_include_tag    "jquery", "jquery-migrate", "jquery.dataTables" , "prototype", "jquery-ui" ,"TableTools" , "ZeroClipboard" , "jquery.timepicker"  %>
+  <%= csrf_meta_tags %>
+ <script type="text/javascript" charset="utf-8">
+ 
+  jQuery(document).ready(function() {
+
+     jQuery('#example').dataTable(
+     	     {
+       	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+
+     	     }
+     	     );
+     jQuery('.datepicker').datepicker();
+     jQuery("input:not(.nocaps)").keyup(function() { this.value = this.value.toUpperCase(); } );
+     jQuery('.numeric').keyup(function () { this.value = this.value.replace(/[^0-9\.]/g,''); } );
+   
+});
+   
+
+function AJC(url, method, param)       {
+   var auth_token = '<%= protect_against_forgery? ? form_authenticity_token : ''%>';
+   params = 'authenticity_token=' + encodeURIComponent(auth_token);
+   if(param !== null)
+     params += "&"+param;
+     new Ajax.Request(url,
+  {asynchronous:true,
+  evalScripts:true,
+  method:method,
+  onComplete:function(request){ if (fnComplete) fnComplete(request); else  HandleAjaxErrors(request); },
+  parameters:params
+  }
+     );
+  
+  return false;
+   }
+
+   function minimize() {
+    h = jQuery('#alerts').height();
+    jQuery('#alerts').height(5); 
+    jQuery('#alert_content').css('visibility','hidden');
+    jQuery('#bar').html("<a id='max' onclick='maximize("+h+");'>[+]&nbsp;&nbsp;&nbsp;Notifications&nbsp;&nbsp;&nbsp;[<%=Time.now.strftime('%m/%d/%Y %H:%M')%>]</a>");
+   }
+   function maximize(h) {
+    jQuery('#alerts').height(h); 
+    jQuery('#alert_content').css('visibility','visible');
+    jQuery('#bar').html("<a id='min' onclick='minimize(this.height);'>[-]&nbsp;&nbsp;&nbsp;Notifications&nbsp;&nbsp;&nbsp;[<%=Time.now.strftime('%m/%d/%Y %H:%M')%>]</a>");
+   }
+
+ </script>
+ 
+  
+</head>
+<% 
+
+ #if session[:student_count].nil?
+    students = Student.find(:all)
+    session[:student_count] = students.size
+  #end
+ #if session[:staff_count].nil?
+    staffs = Staff.find(:all)
+    session[:staff_count] = staffs.size
+  #end
+
+ if session[:staff_count] > 0 && session[:student_count] > 0
+    sched_tab = 1
+  else
+    sched_tab = 0
+ end
+
+ if (session[:role].eql? "MANAGEMENT")
+ tab_access = {:reports => 1 , :users => 1 , :students => 1 , :payments => 1 , :attendances => 1 ,:programs => 1, :schedules => sched_tab , :levels => 1 , :staff => 1 ,:leaves => 1 } 
+ elsif (session[:role].eql? "STAFF")
+ 	 tab_access = {:reports => 0 , :users => 0 , :students => 1 , :payments => 1 , :attendances => 0 ,:programs => 1, :schedules => sched_tab , :levels => 1 , :staff => 0 , :leaves => 0} 
+ elsif (session[:role].eql? "CENTER MANAGER")
+ 	 tab_access = {:reports => 1 , :users => 1 , :students => 1 , :payments => 1 , :attendances => 1 ,:programs => 1, :schedules => sched_tab , :levels => 1 , :staff => 1  , :leaves => 0} 
+ end
+%>
+<body id="dt_example"  >
+ 
+<div id="container">
+<div id="demo">
+  
+<div class="menu3">
+<% unless session[:username].nil? %>
+    <%unless tab_access[:reports] == 0%><a href="/reports">Reports</a><%end%>
+    <%unless tab_access[:users] == 0%><a href="/users">Users Maintenance</a><%end%>
+    <%unless tab_access[:students] == 0%><a href="/students" class="current">Enrollment Registration Form</a><%end%>
+    <%unless tab_access[:payments] == 0%><a href="/payments">Payments</a><%end%>
+    <%unless tab_access[:attendances] == 0%><a href="/attendances">Daily Attendance Sheet</a><%end%>
+    <%unless tab_access[:programs] == 0%><a href="/programs">Program Info</a><%end%>
+    <%unless tab_access[:schedules] == 0%><a href="/schedules">Daily Tracker</a><%end%>
+    <%unless tab_access[:levels] == 0%><a href="/levels">Levels</a><%end%>
+    <%unless tab_access[:staffs] == 0%><a href="/staffs">Staff Info</a><%end%>
+    <a href="/logout">LOGOUT</a>
+ <%end%>   
+</div>
+
+<%
+  bill_count = 0
+  bday_count = 0
+  advance_count = 0
+  staff_bday_count = 0
+  bday_list = Array.new
+  staff_bday_list = Array.new
+  advance_list = Array.new
+  adv = 0
+  @students = Student.find(:all)
+  @staffs = Staff.find(:all)
+  @students.each do |student| 
+    stat,billing = student.must_bill?
+    adv = 0
+    billing.each do |b|
+      a = b[:message_codes].detect{|c| c == 3}
+      if ( a == 3)
+      	 adv = adv+1     
+      end
+    end
+
+    if (stat ) && (adv == 0)
+    	 bill_count = bill_count + 1	    
+    end 
+    if (stat && (adv > 0))
+       advance_list << "#{student.firstname} #{student.lastname}"
+    end 
+    if (student.is_birthday?)
+    	 bday_count = bday_count + 1
+    	 bday_list << "#{student.firstname} #{student.lastname}"
+    end 
+    
+    
+  end
+  @staffs.each do |staff| 
+    if (staff.is_birthday?)
+    	 staff_bday_count = staff_bday_count + 1
+    	 staff_bday_list << "#{staff.firstname} #{staff.lastname}"
+    end 
+  end
+
+  
+ %>
+ <% unless session[:username].nil? %>
+<div id="alerts" style="position: fixed;right:20px;top:50px;border:2px solid;padding: 5px;box-shadow: 10px 10px 5px blue;  min-height:20px ; min-width: 150px;color:red;background: #81DAF5;z-index:100">
+<div id="bar" style="cursor:pointer"><a id="min" onclick="minimize();">[-]</a>&nbsp;&nbsp;&nbsp;Notifications&nbsp;&nbsp;&nbsp;[<%=Time.now.strftime('%m/%d/%Y %H:%M')%>]</div>
+<div id="alert_content">
+ <br>
+ Billing Notification: <a href="/reports_and_alerts"><b><%=bill_count%></b></a><br>
+ <br>
+ Student Birthday Alerts: <br>
+ <%bday_list.each do |b|%>
+ * <%=b%><br>
+ <%end%>
+ <br>
+ Staff Birthday Alerts: <br>
+ <%staff_bday_list.each do |b|%>
+ * <%=b%><br>
+ <%end%>
+ <br>
+ -------------------------------<br>
+ Advance Payment Notification: <a href="/advance_payments"><b><%=advance_list.size%></b></a><br><br>
+ <%advance_list.each do |b|%>
+ * <%=b%><br>
+ <%end%>
+ <br>
+ 
+ 
+ 
+</div> 
+</div>
+<script>
+   minimize();
+</script>
+
+<%end%>
+<div id="menu3sub" class="menu3sub"></div>
+<%= yield %>
+</div>
+
+</div>
+</body>
+</html>

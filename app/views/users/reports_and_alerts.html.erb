@@ -1,0 +1,123 @@
+<script>
+function showDetails(id) 
+ {
+ jQuery('#details').css('visibility','visible') ;
+ var params = 'student_id=' + id  
+ AJC("show_details", "post", params);
+}
+
+function reAssign(e) {
+  if (jQuery("#payment_program_id").val() == "") {
+     alert('Must select a program to assign the excess hours')
+     return;
+  }
+   ids = new Array();
+   ids = e;
+   
+    var params = 'ids='+ids+ '&program_id='+jQuery("#payment_program_id").val()+'&hours='+jQuery("#temp_hrs").val();
+    AJC('/payments/reassign_to', "post", params);
+    
+}
+
+
+</script>
+
+<div id="details" style="position: fixed;visibility:hidden;z-index:1000;padding-top:55px;top:200px;border:2px solid;box-shadow: 10px 10px 5px blue;background: #81DAF5"></div>
+<table class="report_table">
+<h4>Billing Alerts</h4>
+<thead>
+  <tr>
+    <th>Student</th>
+    <th>Billing Details</th>
+    
+  </tr>
+</thead>
+
+<tbody>
+<% @students.each do |student| %>
+  <%
+    adv = 0
+    stat,billing = student.must_bill?
+    billing.each do |b|
+      a = b[:message_codes].detect{|c| c == 3}
+      if ( a == 3)
+      	adv = adv + 1   
+      end
+    end
+
+   h = "<br>".html_safe
+   if (stat)
+  %>
+  <tr style="font-size:10px;cursor:pointer" onclick="showDetails(<%=student.id%>)">
+    <td style="font-size:10px"><%= student.lastname%>,&nbsp;<%=student.firstname%></td>
+    <td style="font-size:10px">
+      <table>
+       <thead><tr><th>Program</th><th>Payment Date</th><th>Billing Details</th></tr></thead>
+      <%billing.each do |b|%>
+        <%  a = b[:message_codes].detect{|c| c == 3} %>
+        <%if b[:message_codes].size > 0%>
+          <tr>
+          <td width="350"><a href="users/<%=student.id%>/<%= (a == 3) ? 'advance_billing' : 'billing'%>/<%=b[:program_id]%>"><%=b[:program_name]%></a></td>
+          <td width="250"><%=b[:payment_date].strftime('%m/%d/%Y') unless b[:payment_date].nil?%></td>
+          <td width="450"><%=b[:messages].inspect%></td>
+          </tr>
+        <%end%>
+      <%end%>
+      </table>
+    </td>
+  </tr>
+  <%end%>
+<% end %>
+</tbody>
+
+</table>
+
+
+
+
+<script>
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "print",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	   "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+           "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv": "print"
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+    
+    jQuery("#alerts").css("visibility","hidden");
+    
+</script>

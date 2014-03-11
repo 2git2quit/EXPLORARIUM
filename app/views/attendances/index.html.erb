@@ -1,0 +1,47 @@
+<div id="stylized" class="mylist">
+
+<h3>Attendance History <input type="button" value="New Attendance" onclick="document.location.href = '/attendances/new'" ></h3>
+<table id="example">
+<thead>
+  <tr>
+    <th>Session date</th>
+    <th>Student</th>
+    <th>Program</th>
+    <th>Level</th>
+    <th>No. of Hours</th>
+    <th></th>
+    <th></th>
+  </tr>
+</thead>
+<tbody>
+<% @attendances.each do |attendance| %>
+  <tr>
+    <td><%= attendance.session_date.strftime('%m/%d/%Y') %></td>
+    <td>
+      <%unless attendance.student.nil?  %>
+      <%= attendance.student.firstname%>&nbsp;<%= attendance.student.lastname %>
+      <%end%>
+    </td>
+    <td>
+      <%unless attendance.program.nil?  %>
+      <%= attendance.program.name %>
+      <%end%>
+    </td>
+    <td>
+      <%unless attendance.level.nil?  %>
+      <%= attendance.level_id.nil? ? 'UNKNOWN' : attendance.level.level_name %>
+      <%end%>
+    </td>
+    <td style="text-align:center;"><%= attendance.hours %></td>
+    <td><%= link_to 'Edit', edit_attendance_path(attendance) %></td>
+    <td><%= link_to 'Delete', "/attendances/#{attendance.id}/destroy" %></td></td>
+  </tr>
+<% end %>
+
+</tbody>
+
+</table>
+
+<br />
+</div>
+<%#= link_to 'New Attendance', new_attendance_path %>

@@ -1,0 +1,408 @@
+<script type="text/javascript" charset="utf-8">
+ var table_index = 0; 
+ 
+ jQuery(document).ready(function() {
+	jQuery('.dt').dataTable( {
+		"bPaginate": false,
+		"bLengthChange": true,
+		"bFilter": false,
+		"bSort": true,
+		"bInfo": true,
+		"bAutoWidth": true
+		//"fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+		//				jQuery(nRow).attr('id',  "row_"+aData[0]);
+		//				return nRow;
+		//			}
+        	
+		});
+ 
+ } );
+ 
+ jQuery(document).ready(function() {
+	jQuery('#history').dataTable( {
+		"bPaginate": false,
+		"bLengthChange": true,
+		"bFilter": false,
+		"bSort": true,
+		"bInfo": true,
+		"bAutoWidth": true
+		});
+ 
+ } );
+
+ function updateTableIndex(i) {
+   table_index = i; 	 
+ }
+
+function fnClickAddRow() {
+	 var today = new Date();
+	 var yy = today.getFullYear();
+	 var mm = ['JANUARY','FEBRUARY','MARCH', 'APRIL', 'MAY', 'JUNE','JULY', 'AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+	 
+  table_index++;
+	 jQuery('#month').dataTable().fnAddData( ["<input class='month' onchange='fnOnChangeMonth("+table_index+")' name=months["+table_index+"][month] id=payment_month_"+table_index+" type=text value='"+mm[today.getMonth()]+"'>", "<input class='month' name=months["+table_index+"][year] id=payment_year_"+table_index+" type=text value='"+yy+"'>"] );
+	 jQuery('#month').dataTable.attr
+}
+
+function fnClickDeleteRow(i) {
+	jQuery('#month').dataTable().fnClearTable();
+  table_index = 0;
+}
+
+
+
+function fnOnChangeYear(i) {
+	
+  val = jQuery('#payment_year_'+i).val();
+  jQuery('#payment_year_'+i).val(val.replace(/[^0-9\.]/g,''));
+  
+}
+function fnOnChangeMonth(i) {
+	
+  val = jQuery('#payment_month_'+i).val();
+  switch (val.toUpperCase().substring(0,3))
+  {
+    case "JAN":
+    jQuery('#payment_month_'+i).val("JANUARY");
+     break;
+    case "FEB":
+    jQuery('#payment_month_'+i).val("FEBRUARY");
+     break;
+    case "MAR":
+    jQuery('#payment_month_'+i).val("MARCH");
+     break;
+    case "APR":
+    jQuery('#payment_month_'+i).val("APRIL");
+     break;
+    case "MAY":
+    jQuery('#payment_month_'+i).val("MAY");
+     break;
+    case "JUN":
+    jQuery('#payment_month_'+i).val("JUNE");
+     break;
+    case "JUL":
+    jQuery('#payment_month_'+i).val("JULY");
+     break;
+    case "AUG":
+    jQuery('#payment_month_'+i).val("AUGUST");
+     break;
+    case "SEP":
+    jQuery('#payment_month_'+i).val("SEPTEMBER");
+     break;
+    case "OCT":
+    jQuery('#payment_month_'+i).val("OCTOBER");
+     break;
+    case "NOV":
+    jQuery('#payment_month_'+i).val("NOVEMBER");
+     break;
+    case "DEC":
+    jQuery('#payment_month_'+i).val("DECEMBER");
+     break;
+    default:
+       jQuery('#payment_month_'+i).val(""); 
+      
+  } 
+  
+}
+
+
+
+function getPaymentHistory() 
+ {
+ var params = 'student_id=' + jQuery('#payment_student_id').val() ;
+ var id =  jQuery('#payment_student_id').val();
+ AJC(id+'/history', "post", '');
+}
+function getProgramFee() 
+ {
+ var params = 'program_id=' + jQuery('#payment_program_id').val() ;
+ AJC('/payments/programfee', "post", params);
+}
+function getOverrideReason(t) 
+ {
+   jQuery('#override').css("visibility","visible") ;
+   //jQuery('form').submit();
+}
+function validateProgramFee() 
+ {
+   var params = 'amount_paid=' + jQuery('#payment_amount_paid').val(); 
+   params = params + '&program_id=' + jQuery('#payment_program_id').val();
+   AJC('/payments/validate', "post", params);
+}
+
+function checkOverride() {
+   var params = 'username=' + jQuery('#override_username').val(); 
+   params = params + '&password=' + jQuery('#override_password').val();
+   params = params + '&reason=' + jQuery('#override_reason').val();
+   AJC('/payments/checkOverride', "post", params);
+}
+
+  function set_amount(days,fee) {
+    jQuery('#payment_amount_paid').val(days * fee);
+  }
+
+
+</script>
+  
+
+<div id="stylized" class="myform">
+
+<%#= form_for(@payment) do |f| %>
+<%= form_for(@payment , :remote => true) do |f| %>
+<h1>PAYMENTS FORM</h1>
+<p>Data entry page for payments</p>
+<%if !@payment.override_reason.blank? && !@payment.override_reason.nil?%>
+<div style="background: #81DAF5"">OVERRIDE : <%=@payment.override_reason%></div>
+<%end%>
+<div class="errormsg" <%if (@validates.nil? || @validates.empty?) && (@validation_error.nil?)%>style="visibility:hidden" <%end%> >
+  <div id="msg" style="position: fixed;padding-top:55px;top:200px;border:2px solid;box-shadow: 10px 10px 5px blue;  min-height:30px ; min-width: 750px;background: #81DAF5">
+  <% unless @validates.nil? %>
+   <% @validates.each do |k,v|%>
+     ERROR: <%=Payment.human_attribute_name(k)%>&nbsp;<%=v%><br><br>
+   <% end %>
+    <%=@validation_error%><br><br>
+  <br>
+  <%end%>
+  <input type="button" value="Ok" onclick="jQuery('.errormsg').css('visibility','hidden') ;" >
+  </div> 
+</div>
+
+<input type="hidden" name="payment_id" value="<%=@payment.id%>">
+<input type="hidden" name="payment_override_reason" value="<%=@payment.override_reason%>">
+ 
+
+    <label><%= f.label :payment_date %>
+    <span class="small">Date</span>
+  </label>
+  
+  <input class="datepicker" name="payment[payment_date]" required value="<%=@payment.payment_date.nil? ? '' : @payment.payment_date.strftime('%m/%d/%Y')%>" type="text">
+
+  <label><%= f.label :pr_no %>
+    <span class="small">Input PR number</span>
+  </label>
+  <%= f.text_field :pr_no  , :required => true%>
+
+  <label><%= f.label :student_id %>
+    <span class="small">Select student</span>
+  </label>
+  
+  <% if @payment.new_record? || !@validation_error.nil? %>
+       <%=  select("payment", "student_id", @students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, { :prompt => 'Select' } , :required => true, :onChange => 'getPaymentHistory()' )  %>
+  <% else %>    
+       <%=  select("payment", "student_id", @students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, { :prompt => 'Select' } , :required => true, :onChange => 'getPaymentHistory()' ,  :selected => @payment.student_id , :disabled => true)  %>
+       <input type="hidden" name="payment[student_id]" value="<%=@payment.student_id%>">
+  <% end %>   
+  
+  <label><%= f.label :program %>
+    <span class="small">Program to enroll to</span>
+  </label>
+  <%=  select("payment", "program_id", @programs.collect {|p| [ p.name, p.id ] }, { :prompt => 'Select' }, :onChange => 'getProgramFee()' , :required => true, :selected => @payment.program_id) %>
+ 
+  <label><%= f.label :level_id %>
+    <span class="small">Level of student</span>
+  </label>
+  <%=  select("payment", "level_id", @levels.collect {|p| [ p.level_code, p.id ] }, { :prompt => 'Select' }, :onChange => 'getProgramFee()' , :required => true, :selected => @payment.level_id) %>
+  
+<label><%= f.label :amount_paid %>
+    <span class="small"></span>
+</label>
+  
+<div id="fee">  
+<%= f.text_field :amount_paid, :class => 'numeric' , :required => true, :value => (number_with_precision(f.object.amount_paid, :precision => 2) || 0) , :onChange => '' %>
+<div id="validation"></div>
+</div>   
+
+<label><%= "VAT" %>
+    <span class="small"> </span>
+</label>
+<%= f.text_field :vat, :class => 'numeric' ,  :value => (number_with_precision(f.object.vat, :precision => 2) || 0) %>
+
+<label><%= "Other Charges" %>
+    <span class="small"> </span>
+</label>
+<%= f.text_field :charges, :class => 'numeric' ,  :value => (number_with_precision(f.object.charges, :precision => 2) || 0) %>
+
+<label><%= "Registration Fee" %>
+    <span class="small">Registration Fee</span>
+  </label>
+<%= f.text_field :newfee, :class => 'numeric', :value => (number_with_precision(f.object.newfee, :precision => 2) || 0) %>
+
+  <label><%= "Start Date" %>
+    <span class="small">Start Date</span>
+  </label>
+  <input class="datepicker" name="payment[start_date]" value="<%=@payment.start_date.nil? ? '' : @payment.start_date.strftime('%m/%d/%Y')%>" type="text" required>
+
+  <label><%= "End Date" %>
+    <span class="small">End Date</span>
+  </label>
+  <input class="datepicker" name="payment[valid_date]" value="<%=@payment.valid_date.nil? ? '' : @payment.valid_date.strftime('%m/%d/%Y')%>" type="text" required>
+ 
+   
+ 
+  <label><%= "Months covered" %> 
+    <span class="small_clickable" onclick="fnClickAddRow();">
+        [ADD MONTH]
+    </span>
+    <span class="small_clickable" onclick="fnClickDeleteRow();">
+        [DELETE ALL]
+    </span>
+    </label>
+  
+<div  class="field">
+  <table id="month" class="dt">
+  <thead>
+  <tr>
+    <th>Month</th>
+    <th>Year</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% if @payment.new_record? && !@months.blank? %>
+      <% i = 0%>
+      <%@months.each do |m|%> 
+      <tr>
+        <td><input class='month' onchange="fnOnChangeMonth(<%=i%>)" name="months[<%=i%>][month]" id="payment_month_<%=i%>" type=text value="<%=m.month%>" required></td>
+        <td><input class='month' onchange="fnOnChangeYear(<%=i%>)" name="months[<%=i%>][year]" id="payment_year_<%=i%>" type=text value="<%=m.year%>" required></td>
+      </tr>
+      <% i = i+1%>
+      <script>updateTableIndex(<%=i%>)</script>
+      <%end%>
+    <%elsif @payment.new_record? && @months.blank? %>
+      <tr>
+        <td><input class='month' onchange="fnOnChangeMonth(0)" name="months[0][month]" id="payment_month_<%=0%>" type=text value="<%=Time.now.strftime('%B').upcase%>" required></td>
+        <td><input class='month' onchange="fnOnChangeYear(0)" name="months[0][year]" id="payment_year_<%=0%>" type=text value="<%=Time.now.year%>" required></td>
+      </tr>
+    <% else %>
+      <% i = 0%>
+      <%@payment.month_covered.each do |m|%>
+        <tr>
+        <td><input class='month' onchange="fnOnChangeMonth(<%=i%>)" name="months[<%=i%>][month]" id="payment_month_<%=i%>" type=text value="<%=m.month%>"></td>
+        <td><input class='month' onchange="fnOnChangeYear(<%=i%>)" name="months[<%=i%>][year]" id="payment_year_<%=i%>" type=text value="<%=m.year%>"></td>
+        </tr>
+         <% i = i+1%>
+         <script>updateTableIndex(<%=i%>)</script>
+      <% end %>  
+    <% end %>
+  </tbody>  
+  </table>
+  <br />
+  </div>
+  
+  <label><%= "Payment Details" %></label>
+  <div  class="field">
+  <table id="payment_details" class="dt">
+  <thead>
+  <tr>
+    <th>Cash Amount</th>
+    <th>Cheque Amount</th>
+    <th>Credit Card Amount</th>
+    <th>Cheque Bank</th>
+    <th>Cheque#</th>
+    <th>Credit Card Name</th>
+    <th>Credit Card Expiration</th>
+  </tr>
+  </thead>
+  <tbody>
+    <tr>
+    <td><input type="text" class="numeric" style="width:50px" id="payment_detail_cash_amount" name="payment_detail[cash_amount]" value="<%=@payment_detail.nil? ? 0.00 : number_with_precision(@payment_detail.cash_amount, :precision => 2) %>"></td>
+    <td><input type="text" class="numeric" style="width:50px" id="payment_detail_cheque_amount" name="payment_detail[cheque_amount]" value="<%=@payment_detail.nil? ? 0.00 : number_with_precision(@payment_detail.cheque_amount, :precision => 2) %>"></td>
+    <td><input type="text" class="numeric" style="width:50px" id="payment_detail_credit_card_amount" name="payment_detail[credit_card_amount]" value="<%=@payment_detail.nil? ? 0.00 : number_with_precision(@payment_detail.credit_card_amount, :precision => 2) %>"></td>
+    <td><input type="text"  style="width:80px" id="payment_detail_cheque_bank_name" name="payment_detail[cheque_bank_name]" value="<%=@payment_detail.nil? ? 0.00 : @payment_detail.cheque_bank_name%>"></td>
+    <td><input type="text"  style="width:80px" id="payment_detail_cheque_number" name="payment_detail[cheque_number]" value="<%=@payment_detail.nil? ? 0.00 : @payment_detail.cheque_number%>"></td>
+    <td><input type="text"  style="width:80px" id="payment_detail_credit_card_name" name="payment_detail[credit_card_name]" value="<%=@payment_detail.nil? ? 0.00 : @payment_detail.credit_card_name%>"></td>
+    <td><input class="datepicker" style="width:50px" name="payment_detail[credit_card_expirydate]" value="<%=@payment_detail.credit_card_expirydate.nil? ? '' : @payment_detail.credit_card_expirydate.strftime('%m/%d/%Y')%>" type="text"></td>
+  </tr>
+
+  </tbody>
+  </table>
+  <br />
+  </div>
+  
+
+ <div id="payment_history"> 
+ <%unless @history.nil?  || @payment.new_record? %>
+  <label><%= "Payments History" %></label>
+ <div >
+  <table id="history">
+  <thead>
+  <tr>
+    <th></th>
+    <th>Date</th>
+    <th>PR No.</th>
+    <th>Program</th>
+    <th>Program Fee</th>
+    <th>Registration Fee</th>
+    <th>Month(s) covered</th>
+  </tr>
+  </thead>
+  <tbody>
+      <% i = 0%>
+      <%@history.each do |h|%>
+        <tr>
+        <td><%=i+1%></td>
+        <td><%=h.payment_date.strftime("%m/%d/%Y")%></td>
+        <td><%=h.pr_no%></td>
+        <td><%=h.program.name%></td>
+        <td><%=number_with_precision(h.amount_paid, :precision => 2) || 0%></td>
+        <td><%=number_with_precision(h.newfee, :precision => 2) || 0%></td>
+        <td>
+        <% h.month_covered.each do |mc| %><%=mc.month%> , <%end%>
+        </td>
+        </tr>
+         <% i = i+1%>
+         <script>updateTableIndex(<%=i%>)</script>
+      <% end %>  
+  </tbody>  
+  </table>
+  <br />
+  </div>
+  <br />
+  <%end%>
+  </div>
+  
+<br/>
+<label><%= "Attendance Card No." %>
+    <span class="small">Attendance Card No.</span>
+  </label>
+<%= f.text_field :card_no%>
+
+  <label><%=  "OR#" %>
+    <span class="small">OR number</span>
+  </label>
+  <%= f.text_field :payment_details %>
+
+  <br />
+
+
+  <div>
+   <%if !@validation_error.nil? && (@validation_error.start_with?('WARNING') || @validation_error.start_with?('Username or Password')) %>
+      <input type="button" value="Override Warning" name="commit" onclick="getOverrideReason(this)">
+  <%end%>
+  <input name="commit" type="submit" value="Save" onclick="//this.setAttribute('disabled', 'disabled');">
+  <input type="button" value="Cancel" onclick="document.location.href = '../../payments'" >
+  </div>   
+
+<div id="override" style="position: fixed;padding-top:25px;top:150px;visibility:hidden;border:2px solid;box-shadow: 10px 10px 5px blue; width: 450px;background: #81DAF5">
+ <input type=hidden  name="user[path]" value=<%=@path%>>
+ <label><%= "Username" %>
+    <span class="small">User login</span>
+  </label>
+  <input type="text" class="nocaps" name="override_username" value="">
+  <label><%= "Password" %>
+    <span class="small">Secret password</span>
+  </label>
+  <input type="password" class="nocaps" name="override_password" value="" >
+  <label><%= "Reason for Override" %>
+    <span class="small"></span>
+  </label>
+  <input type="text" class="nocaps" name="override_reason" value="<%=@payment.override_reason%>" >
+  <input type="hidden" class="nocaps" name="overriden" value="<%=@payment.override_reason%>" >
+  <input type="button" value="Ok" onclick="jQuery('form').submit();" >
+  <input type="button" value="Cancel" onclick="jQuery('#override').css('visibility','hidden') ;" >
+</div>
+  
+<% end %>
+
+
+</div>
+

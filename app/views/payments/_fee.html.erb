@@ -1,0 +1,9 @@
+<%if (cycle == 365) %> 
+   <input style="width:80px" type="text" value="<%=(number_with_precision(fee, :precision => 2) || 0) %>" size="30" name="payment[amount_paid]" id="payment_amount_paid" class="numeric">
+   <label><%= "Days"%>
+   </label>
+   <input style="width:20px" type="text" name="payment[daycount]" id="payment_daycount" class="numeric" onchange="set_amount(this.value,<%=fee%>);" value="1"><br>
+<%else%>  
+<input type="text" value="<%=(number_with_precision(fee, :precision => 2) || 0) %>" size="30" name="payment[amount_paid]" id="payment_amount_paid" class="numeric">
+<%end%>
+

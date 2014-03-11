@@ -1,0 +1,128 @@
+<h1><%=session[:company]%></h1>
+<div id="total"><h3><%=title%> &nbsp;&nbsp;TOTAL : </h3></div>
+
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Payment Date</th>
+    <th>Student</th>
+    <th>PR#</th>
+    <th>Tuition Fee</th>
+    <th>Registration Fee</th>
+    <th>Other Charges</th>
+  </tr>
+</thead>
+<tbody>
+<%subtotal_amount_paid = 0.00%>
+<%subtotal_newfee = 0.00%>
+<%subtotal_charges = 0.00%>
+<%total_amount_paid = 0.00%>
+<%total_newfee = 0.00%>
+<%total_charges = 0.00%>
+<%first_pass = true%>
+<%mm = "" %>
+<% objects.each do |p| %>
+  <%
+     if first_pass
+        mm =  p.payment_date.strftime('%B')
+        first_pass = false
+     end
+  %>
+  <%if mm != p.payment_date.strftime('%B')%>
+       <tr style="font-size:18px" bgcolor="#A9F5F2">
+       <td><%=mm%></td>
+       <td colspan=2></td>
+       <td><%=number_with_precision(subtotal_amount_paid, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       <td><%=number_with_precision(subtotal_newfee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       <td><%=number_with_precision(subtotal_charges, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+       </tr>
+      <%subtotal_amount_paid = 0.00%>
+      <%subtotal_newfee = 0.00%>
+      <%subtotal_charges = 0.00%>
+  <%end%>     
+
+  <tr>
+     <td style="font-size:10px"><%= p.payment_date.strftime('%m/%d/%Y')%></td>
+     <td style="font-size:10px"><%= p.student.lastname%>,&nbsp;<%=p.student.firstname%></td>
+     <td style="font-size:10px"><%= p.pr_no%></td>
+     <td style="font-size:10px"><%= number_with_precision(p.amount_paid, :precision => 2 , :delimiter => "#{session[:delimiter]}") %></td>
+     <td style="font-size:10px"><%= number_with_precision(p.newfee, :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+     <td style="font-size:10px"><%= number_with_precision(p.charges, :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+    
+     <%total_amount_paid = total_amount_paid.to_f + p.amount_paid.to_f%>
+     <%total_newfee = total_newfee.to_f + p.newfee.to_f%>
+     <%total_charges = total_charges.to_f + p.charges.to_f%>    
+      <%subtotal_amount_paid = subtotal_amount_paid.to_f + p.amount_paid.to_f%>
+      <%subtotal_newfee = subtotal_newfee.to_f + p.newfee.to_f%>
+      <%subtotal_charges = subtotal_charges.to_f + p.charges.to_f%>    
+     <%mm =  p.payment_date.strftime('%B')%>
+  </tr>
+<% end %>
+</tbody>
+<tr style="font-size:18px" bgcolor="#A9F5F2">
+   <td><%=mm%></td>
+   <td colspan=2></td>
+   <td><%=number_with_precision(subtotal_amount_paid, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+   <td><%=number_with_precision(subtotal_newfee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+   <td><%=number_with_precision(subtotal_charges, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+</tr>
+<tfoot>
+  <tr>
+    <td>TOTAL</td>
+    <td></td><td></td>
+    <td><%=number_with_precision(total_amount_paid, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+    <td><%=number_with_precision(total_newfee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+    <td><%=number_with_precision(total_charges, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+  </tr>
+</tfoot>
+
+</table>
+<%total=total_amount_paid+total_newfee+total_charges%>
+
+<script>
+ jQuery("#total").html('<h3><%=title%> &nbsp;&nbsp;TOTAL : <div style="border:1px solid #000; display:inline-block;"><%=number_with_precision(total, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></div<</h3>');
+
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+  jQuery("#alerts").css("visibility","hidden"); 
+ 
+</script>

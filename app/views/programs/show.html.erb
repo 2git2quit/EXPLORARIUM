@@ -1,0 +1,30 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Name:</b>
+  <%= @program.name %>
+</p>
+
+<p>
+  <b>Cost:</b>
+  <%= @program.cost %>
+</p>
+
+<p>
+  <b>Number of sessions:</b>
+  <%= @program.number_of_sessions %>
+</p>
+
+<p>
+  <b>Hours per session:</b>
+  <%= @program.hours_per_session %>
+</p>
+
+<p>
+  <b>New student fee:</b>
+  <%= @program.new_student_fee %>
+</p>
+
+
+<%= link_to 'Edit', edit_program_path(@program) %> |
+<%= link_to 'Back', programs_path %>

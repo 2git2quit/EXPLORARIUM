@@ -1,0 +1,201 @@
+<script>
+ jQuery(document).ready(function() {
+	jQuery('.dt').dataTable( {
+		"bPaginate": false,
+		"bLengthChange": true,
+		"bFilter": false,
+		"bSort": true,
+		"bInfo": true,
+		"bAutoWidth": true
+		});
+ 
+ } );
+
+function toggle_checkbox(t) { 
+  if (t.checked) 
+    t.value = "Y"
+  else 
+    t.value = "N"	  
+  
+  	  
+}
+ 
+function validateName() 
+ {
+   if ( (jQuery('#student_lastname').val() != "") && (jQuery('#student_firstname').val() != "") ) {
+     var params = 'lastname=' + jQuery('#student_lastname').val()  + '&firstname='+jQuery('#student_firstname').val();
+      AJC('/validateName', "post", params);
+    }
+}
+
+function printForm() 
+ {
+ var params = 'firstname=' + jQuery('#student_firstname').val() ;
+ params = params + "&lastname="+ jQuery('#student_lastname').val() ;
+ params = params + "&mother="+ jQuery('#student_mother').val() ;
+ params = params + "&mother_contact_number="+ jQuery('#student_mother_contact_number').val() ;
+ params = params + "&father="+ jQuery('#student_father').val() ;
+ params = params + "&father_contact_number="+ jQuery('#student_father_contact_number').val() ;
+ params = params + "&registration_date="+ jQuery('#student_registration_date').val() ;
+ params = params + "&school="+ jQuery('#student_school').val() ;
+ params = params + "&status="+ jQuery('#student_status').val() ;
+ params = params + "&dob="+ jQuery('#student_dob').val() ;
+ params = params + "&sibling_0_name="+ jQuery('#sibling_0_name').val() ;
+ params = params + "&sibling_1_name="+ jQuery('#sibling_1_name').val() ;
+ params = params + "&sibling_2_name="+ jQuery('#sibling_2_name').val() ;
+ params = params + "&sibling_0_relationship="+ jQuery('#sibling_0_name').val() ;
+ params = params + "&sibling_1_relationship="+ jQuery('#sibling_1_relationship').val() ;
+ params = params + "&sibling_2_relationship="+ jQuery('#sibling_2_relationship').val() ;
+ params = params + "&sibling_0_dob="+ jQuery('#sibling_0_name').val() ;
+ params = params + "&sibling_1_dob="+ jQuery('#sibling_1_relationship').val() ;
+ params = params + "&sibling_2_dob="+ jQuery('#sibling_2_dob').val() ;
+ 
+ 
+ jQuery("#stylized").css("visibility","hidden"); 
+ jQuery(".menu3").css("visibility","hidden"); 
+ jQuery(".menu3sub").css("visibility","hidden"); 
+
+ AJC("/students/print_form", "post", params);
+}
+
+function print_form() {
+      jQuery("#report_buttons").css("visibility","hidden"); 
+      window.print();
+      jQuery("#report_buttons").css("visibility","visible"); 
+   }
+
+</script>
+<div id="preform">
+</div>
+<div id="stylized" class="myform" style="height:800px">
+<%= form_for(@student) do |f| %>
+
+<h1>STUDENT REGISTRATION FORM</h1>
+<p>Data entry page for students registration</p>
+<div class="errormsg" <%if @validates.nil? %>style="visibility:hidden" <%end%> >es
+  <div id="msg" style="position: fixed;padding-top:55px;top:100px;border:2px solid;box-shadow: 10px 10px 5px blue;  min-height:30px ; min-width: 750px;background: #81DAF5">
+  <% unless @validates.nil?%>
+  <% @validates.each do |k,v|%>
+     <%=Student.human_attribute_name(k)%>&nbsp;<%=v%><br><br>
+  <% end %>
+  <br>
+  <%end%>
+  <input type="button" value="Ok" onclick="jQuery('.errormsg').css('visibility','hidden') ;" >
+  </div> 
+</div>
+
+
+ <label><%= f.label :lastname %>
+    <span class="small"></span>
+  </label>
+    <%= f.text_field :lastname   , :onChange => "validateName()" , :required => true%>
+
+ <label><%= f.label :firstname %>
+    <span class="small"></span>
+  </label>
+    <%= f.text_field :firstname , :onChange => "validateName()"  , :required => true%>
+
+ <label><%= "Mother's Name" %>
+    <span class="small"></span>
+  </label>
+   <%= f.text_field :mother %>
+
+  <label><%= "Mother's Contact Number" %>
+    <span class="small"></span>
+  </label>
+   <%= f.text_field :mother_contact_number %>
+
+ <label><%= "Father's Name" %>
+    <span class="small"></span>
+  </label>
+   <%= f.text_field :father %>
+
+  <label><%= "Father's Contact Number" %>
+    <span class="small"></span>
+  </label>
+   <%= f.text_field :father_contact_number %>
+
+  <label><%= "Email Address 1" %>
+    <span class="small"></span>
+  </label>
+   <%= f.text_field :email_address1 %>
+
+  <label><%= "Email Address 2" %>
+    <span class="small"></span>
+  </label>
+   <%= f.text_field :email_address2 %>
+
+
+  <label><%= f.label :registration_date %>
+    <span class="small">(MM/DD/YYYY)</span>
+  </label>
+  <input class="datepicker" name="student[registration_date]" value="<%=@student.registration_date.nil? ? '' : @student.registration_date.strftime('%m/%d/%Y')%>" type="text" required>
+
+  <label><%= f.label :status %>
+    <span class="small"></span>
+  </label>
+  <% 
+     if (@student.status.nil?)
+      stats = 0
+     else
+      stats = @student.status
+     end
+
+  %>
+  <%= select_tag "student[status]", options_for_select(@status.collect{ |u| [u[:name] ,u[:id]]} ,stats)%>
+
+    <label><%= "School" %>
+    <span class="small"></span>
+  </label>
+  <%= f.text_field :school%>
+  <br>
+  
+  <label><%= "Date of Birth" %>
+    <span class="small">(MM/DD/YYYY)</span>
+  </label>
+  <input class="datepicker" name="student[dob]" value="<%=@student.dob.nil? ? '' : @student.dob.strftime('%m/%d/%Y')%>" type="text">
+ <br>
+  <label><%= "Other Family Members" %></label>
+  <div>
+  <table id="siblings" class="dt">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Relationship</th>
+    <th>Birthday</th>
+    <th>Attending Program ? (Y/N)</th>
+  </tr>
+  </thead>
+    <tbody>
+    <tr>
+    <td><input type="text" id="sibling_0_name" name="sibling[0][name]" value='<%=@siblings.nil? ? '' : @siblings["0"]["name"]%>'></td>
+    <td><input type="text" id="sibling_0_relationship" name="sibling[0][relationship]" value='<%=@siblings.nil? ? '' : @siblings["0"]["relationship"]%>'></td>
+    <td><input class="datepicker" id="sibling_0_dob"  style="width:80px" name="sibling[0][dob]" value='<%=@siblings.nil? ? "" : @siblings["0"]["dob"]%>' type="text"></td>
+    <td><%= check_box_tag "sibling[0][enrolled]", "#{@siblings["0"]["enrolled"]}", @siblings["0"]["enrolled"] == "Y" , :style => "width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%></td>
+    </tr>
+    <tr>
+    <td><input type="text" id="sibling_1_name" name="sibling[1][name]" value='<%=@siblings.nil? ? '' : @siblings["1"]["name"]%>'></td>
+    <td><input type="text" id="sibling_1_relationship" name="sibling[1][relationship]" value='<%=@siblings.nil? ? '' : @siblings["1"]["relationship"]%>'></td>
+    <td><input class="datepicker" id="sibling_1_dob"  style="width:80px" name="sibling[1][dob]" value='<%=@siblings.nil? ? "" : @siblings["1"]["dob"]%>' type="text"></td>
+    <td><%= check_box_tag "sibling[1][enrolled]", "#{@siblings["1"]["enrolled"]}", @siblings["1"]["enrolled"] == "Y" , :style => "width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%></td>
+    </tr>
+    <tr>
+    <td><input type="text" id="sibling_2_dob" name="sibling[2][name]" value='<%=@siblings.nil? ? '' : @siblings["2"]["name"]%>'></td>
+    <td><input type="text" id="sibling_2_relationship" name="sibling[2][relationship]" value='<%=@siblings.nil? ? '' : @siblings["2"]["relationship"]%>'></td>
+    <td><input class="datepicker"  id="sibling_2_dob" style="width:80px" name="sibling[2][dob]" value='<%=@siblings.nil? ? "" : @siblings["2"]["dob"]%>' type="text"></td>
+    <td><%= check_box_tag "sibling[2][enrolled]", "#{@siblings["2"]["enrolled"]}", @siblings["2"]["enrolled"] == "Y" , :style => "width:10px;padding-top:3px" , :onclick => "toggle_checkbox(this)"%></td>
+    </tr>
+  </tbody>
+
+  </table>
+  
+  <div style="position:relative;margin-top:25px;padding-bottom:5px"><h2>Student ID : <%=@student.id%></h2></div>
+  </div>
+ 
+  <div>
+  <input name="commit" type="submit" value="Save" onclick="//this.setAttribute('disabled', 'disabled');">
+  <input type="button" value="Print Form" onclick="printForm();" >
+  <input type="button" value="Cancel" onclick="document.location.href = '../../payments'" >
+  </div>   
+<% end %>
+</div>

@@ -1,0 +1,30 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Student:</b>
+  <%= @ar.student_id %>
+</p>
+
+<p>
+  <b>Program:</b>
+  <%= @ar.program_id %>
+</p>
+
+<p>
+  <b>Level:</b>
+  <%= @ar.level_id %>
+</p>
+
+<p>
+  <b>Amount:</b>
+  <%= @ar.amount %>
+</p>
+
+<p>
+  <b>Newfee:</b>
+  <%= @ar.newfee %>
+</p>
+
+
+<%= link_to 'Edit', edit_ar_path(@ar) %> |
+<%= link_to 'Back', ars_path %>

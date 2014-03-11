@@ -1,0 +1,107 @@
+
+<%    
+months = ['JANUARY','FEBRUARY','MARCH', 'APRIL', 'MAY', 'JUNE','JULY', 'AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
+%>
+<h1><%=session[:company]%></h1>
+<div id="total"><h3><%=title%> &nbsp;&nbsp;TOTAL : </h3></div>
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Payment Date</th>
+    <th>Student</th>
+    <th>Program</th>
+    <th>Unpaid Amount</th>
+    <th>Additional Hours Consumed</th>
+  </tr>
+</thead>
+<tbody>
+<%
+ total_receivables = 0.00
+%>
+
+<% @objects.each do |s| %>
+   <%  
+      if filters[:program_id].nil?
+        stat,billing = s.must_bill?
+      else
+        stat,billing = s.must_bill?(filters[:program_id])
+      end
+
+   %>
+   <% if stat %>
+   <% billing.each do |b| %>
+    <% 
+
+      a = b[:message_codes].detect{|c| c == 3} 
+      if ( (b[:message_codes].size > 0)  )
+        
+    %>
+
+   <tr>
+    <td style="font-size:10px"><%= b[:payment_date].strftime('%m/%d/%Y') unless b[:payment_date].nil? %></td>
+    <td style="font-size:10px"><%= s.lastname%>,&nbsp;<%= s.firstname%> </td>
+    <td style="font-size:10px"><%= b[:program_name]%> </td>
+    <td style="font-size:10px;"><%= number_with_precision(b[:unpaid_cost], :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+    <td style="font-size:10px;"><%= number_with_precision(b[:unpaid_hours], :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+    <%
+    total_receivables = total_receivables.to_f + b[:unpaid_cost].to_f
+     %>
+   </tr>
+   <%end  #unless (a == 3)%>
+   <% end %> 
+   <%end%>
+<% end %>
+
+</tbody>
+
+</table>
+<%total=total_receivables%>
+
+<script>
+ jQuery("#total").html('<h3><%=title%> &nbsp;&nbsp;TOTAL : <div style="border:1px solid #000; display:inline-block;"><%=number_with_precision(total, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></div<</h3>');
+ 
+ 
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+  jQuery("#alerts").css("visibility","hidden"); 
+</script>
+

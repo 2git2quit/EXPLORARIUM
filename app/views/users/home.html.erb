@@ -1,0 +1,144 @@
+<script>
+function generateReport() 
+ {
+ var report_id = jQuery('#user_report_id').val();
+ var params = 'student_id=' + jQuery('#user_student_id').val() ;
+ params = params + "&program_id="+ jQuery('#user_program_id').val() ;
+ params = params + "&level_id="+ jQuery('#user_level_id').val() ;
+ params = params + "&from_date="+ jQuery('#user_from_date').val() ;
+ params = params + "&to_date="+ jQuery('#user_to_date').val() ;
+ params = params + "&from_month="+ jQuery('#user_from_month').val() ;
+ params = params + "&from_year="+ jQuery('#user_from_year').val() ;
+
+
+ AJC("/users/"+report_id+"/generate_report", "post", params);
+}
+
+   function print_report() {
+      jQuery("#report_buttons").css("visibility","hidden"); 
+      window.print();
+      jQuery("#report_buttons").css("visibility","visible"); 
+   }
+
+
+function pick_filter() {
+  reportId = jQuery("#user_report_id").val();
+
+  if (reportId == "1" || reportId == "7") {
+       jQuery("#user_from_month").prop('disabled','disabled')
+       jQuery("#user_from_year").prop('disabled','disabled')
+       jQuery("#user_from_date").prop('disabled','')
+       jQuery("#user_to_date").prop('disabled','')
+       jQuery("#user_level_id").prop('disabled','');
+       jQuery("#user_student_id").prop('disabled','');
+       jQuery("#user_program_id").prop('disabled','');
+  }
+  if (reportId == "2") {
+       jQuery("#user_level_id").prop('disabled','disabled');
+       jQuery("#user_from_date").prop('disabled','disabled')
+       jQuery("#user_to_date").prop('disabled','disabled')
+       jQuery("#user_from_month").prop('disabled','')
+       jQuery("#user_from_year").prop('disabled','')
+       jQuery("#user_student_id").prop('disabled','');
+       jQuery("#user_program_id").prop('disabled','');
+  }
+  if (reportId == "3") {
+       jQuery("#user_student_id").prop('disabled','disabled')
+       jQuery("#user_from_month").prop('disabled','disabled')
+       jQuery("#user_from_year").prop('disabled','disabled')
+       jQuery("#user_level_id").prop('disabled','disabled');
+       jQuery("#user_from_date").prop('disabled','')
+       jQuery("#user_to_date").prop('disabled','')
+       jQuery("#user_program_id").prop('disabled','');
+  }
+  if (reportId == "4") {
+       jQuery("#user_student_id").prop('disabled','disabled')
+       jQuery("#user_from_month").prop('disabled','disabled')
+       jQuery("#user_from_year").prop('disabled','disabled')
+       jQuery("#user_level_id").prop('disabled','disabled');
+       jQuery("#user_from_date").prop('disabled','')
+       jQuery("#user_to_date").prop('disabled','')
+       jQuery("#user_program_id").prop('disabled','');
+  }
+  if (reportId == "5") {
+       jQuery("#user_from_month").prop('disabled','disabled')
+       jQuery("#user_from_year").prop('disabled','disabled')
+       jQuery("#user_level_id").prop('disabled','disabled');
+       jQuery("#user_student_id").prop('disabled','disabled');
+        jQuery("#user_program_id").prop('disabled','disabled');
+  }
+  if (reportId == "6") {
+       jQuery("#user_from_month").prop('disabled','disabled')
+       jQuery("#user_from_year").prop('disabled','disabled')
+       jQuery("#user_level_id").prop('disabled','disabled');
+       jQuery("#user_student_id").prop('disabled','disabled');
+        jQuery("#user_program_id").prop('disabled','disabled');
+  }
+
+}
+</script> 
+ 
+<div id="report_box">
+
+<div id="stylized" class="myform">
+
+<h1>GENERATE REPORTS FORM</h1>
+<p>Reports Page</p>
+
+<div class="errormsg" <%if @validation_error.nil? %>style="visibility:hidden" <%end%> >
+   <%=@validation_error%>
+</div>
+
+
+  <label><%= "Available Reports" %>
+    <span class="small">Select a report</span>
+  </label>
+  <%=  select("user", "report_id", @reports.collect {|p| [ "#{p[1]}", p[0]] }, { :prompt => 'Select' }, :onChange => 'pick_filter()' )  %>
+
+
+  <label><%= "Student" %>
+    <span class="small">Select student</span>
+  </label>
+  <%=  select("user", "student_id", @students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, { :prompt => 'Select' }, :onChange => '' )  %>
+  
+  <label><%= "Program" %>
+    <span class="small">Program to enroll to</span>
+  </label>
+  <%=  select("user", "program_id", @programs.collect {|p| [ p.name, p.id ] }, { :prompt => 'Select' }, :onChange => '') %>
+ 
+  <label><%= "Level" %>
+    <span class="small">Level of student</span>
+  </label>
+  <%=  select("user", "level_id", @levels.collect {|p| [ p.level_code, p.id ] }, { :prompt => 'Select' }, :onChange => '') %>
+  
+  
+  <div id="dates">
+    <label><%= "Date Range (from)" %>
+     <span class="small">from date</span>
+     </label>
+    <input class="datepicker" id="user_from_date" name="user[from_date]"  type="text">
+    <label><%= "Date Range (to)" %>
+     <span class="small">to date</span>
+     </label>
+    <input class="datepicker" id="user_to_date" name="user[to_date]"  type="text">
+  </div>
+ <br><br>
+
+    <label><%= "Month / Year" %>
+      <span class="small">Month and Year </span>
+  </label>
+  <div id="months">    <%=  select("user", "from_month", @months.collect {|p| [ "#{p}", p ]}, { :prompt => 'Select' }, :onChange => 'pick_filter()' , :style => 'width:150px' )  %>
+
+    <%=  select("user", "from_year", @years.collect {|p| [ "#{p}", p ]}, { :prompt => 'Select' }, :onChange => 'pick_filter()' , :style => 'width:150px' )  %>
+  </div>
+
+  <br><br><br><br>
+
+  <input type="button" value="Generate Report" onclick="generateReport();" >
+  <input type="button" value="Cancel" onclick="document.location.href = '../../reports'" >
+
+</div>
+
+</div>
+
+

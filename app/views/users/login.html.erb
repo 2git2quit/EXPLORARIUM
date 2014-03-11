@@ -1,0 +1,33 @@
+ <h1><%=session[:company]%></h1>
+<div id="stylized" class="myform">
+
+<form id="new_user" method="post" action="/authenticate" accept-charset="UTF-8">
+<h1>USER LOGIN PAGE</h1>
+
+<div class="errormsg" <%if @validation_error.nil? %>style="visibility:hidden" <%end%> >
+   <%=@validation_error%>
+</div>
+ <input type=hidden  name="user[trial]" value='<%=@trial%>'>
+ <input type=hidden  name="user[path]" value='<%=(@path.nil? || @path.blank?) ? "/students" : @path %>'>
+
+ <label><%= "Username" %>
+    <span class="small">User login</span>
+  </label>
+  <input type="text" class="nocaps" name="user[username]" value="">
+
+
+  <label><%= "Password" %>
+    <span class="small">Secret password</span>
+  </label>
+  <input type="password" class="nocaps" name="user[password]" value="">
+  
+  <br />
+<br />
+
+  <div><input type="submit" value="Login" onclick="document.location.href = '../../authenticate'" ><input type="button" value="Cancel" onclick="document.location.href = '../../users'" ></div>   
+
+
+</form>
+</div>
+
+<div style="font-family: Verdana, Arial, Helvetica, sans-serif;font-size:10px;margin-left:auto;margin-right:auto;width:70%;"><%=@host%></div>

@@ -1,0 +1,37 @@
+ <div >
+  <table id="history">
+  <thead>
+  <tr>
+    <th>Student</th>
+  </tr>
+  </thead>
+  <tbody>
+      <%schedules.each do |s|%>
+      <%
+        student = Student.find(s.student_id)
+      %>
+      <%unless student.nil?%>
+        <tr>
+        <td><%= student.lastname%>, &nbsp;<%=student.firstname%></td>
+        </tr>
+      <%end%>   
+      <% end %>
+  </tbody>  
+  </table>
+  <br />
+  </div>
+  
+  <script>
+  jQuery(document).ready(function() {
+	jQuery('#history').dataTable( {
+		"bPaginate": false,
+		"bLengthChange": true,
+		"bFilter": false,
+		"bSort": true,
+		"bInfo": true,
+		"bAutoWidth": true
+		});
+ 
+ } );
+  </script>
+ 

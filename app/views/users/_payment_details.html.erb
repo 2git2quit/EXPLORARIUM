@@ -1,0 +1,68 @@
+
+<%
+	@programs = Program.find(:all,:conditions => "cycle = 365")
+
+%>
+<h2><%=student.lastname %>,&nbsp;<%=student.firstname %>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  <input type="button" value="Close" onclick="document.location.href = '../../reports_and_alerts'" >
+</h2>
+  <table class="dt">
+     <thead><tr><th>Date</th><th>Program</th><th>Validity Date</th><th>Paid Tuition Fee</th><th>Paid Registration Fee</th><th>Other Charges</th><th>Program hours</th><th>Consumed hours</th><th>Charge excess hours to</th></tr></thead>
+     <tbody>
+      <% payments.each do |p|%>
+      
+      <% attended = Attendance.sum(:hours,:conditions => ["student_id = ? and program_id = ? and (session_date >= ? and  session_date <= ?) ", p.student_id,p.program_id,p.start_date,p.valid_date])%>
+       <tr>
+         <td><%=p.payment_date.strftime('%m/%d/%Y')%></td>
+         <td><%=p.program.name%></td>
+         <td><%=p.valid_date.strftime('%m/%d/%Y')%></td>
+         <td><%=number_with_precision(p.amount_paid, :precision => 2) || 0 %></td>
+         <td><%=number_with_precision(p.newfee, :precision => 2) || 0%></td>
+         <td><%=number_with_precision(p.charges, :precision => 2) || 0%></td>
+         <%
+         if p.program.cycle == 365
+            hrs = p.hours
+         else
+            hrs = p.program.number_of_sessions * p.program.hours_per_session
+         end
+         %>
+         <td><%=number_with_precision(hrs, :precision => 2) || 0%></td>
+         
+         <td><div id="reassign"><%=number_with_precision(attended, :precision => 2) || 0%></div></td>
+         <input type="hidden" id="temp_hrs" value="<%=hrs%>">
+         
+         <td style="width:50px">
+            <%if (attended > hrs)%>
+                 <%
+                 excess = Array.new
+                 excess_attendance = Attendance.find(:all,:order => "session_date desc", :limit => (attended - hrs),:conditions => ["student_id = ? and program_id = ? and (session_date >= ? and  session_date <= ?) ", p.student_id,p.program_id,p.start_date,p.valid_date])
+                 excess_attendance.each do |e|
+                 	 excess << e.id	 
+                 end
+                 %>
+                 <%=  select("payment", "program_id", @programs.collect {|prog| [ prog.name, prog.id ] }, { :prompt => 'Select' }, :onChange => '' ) %>
+                 <input type="button" value="SAVE" onclick="reAssign(<%=raw excess.to_json%>)"> 
+                 <%#=excess_attendance.inspect%>
+            <%end%>   
+         </td>
+       </tr>
+     <%end%>  
+    </tbody>
+  </table>
+
+
+  <script>
+  jQuery(document).ready(function() {
+	jQuery('.dt').dataTable( {
+		"bPaginate": false,
+		"bLengthChange": true,
+		"bFilter": false,
+		"bSort": false,
+		"bInfo": false,
+		"bAutoWidth": false
+		});
+ 
+ } );
+
+
+  </script>
+

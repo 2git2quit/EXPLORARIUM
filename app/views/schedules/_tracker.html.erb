@@ -1,0 +1,97 @@
+
+<div id="report_buttons">
+     <input type="button" value="Print" onclick="print_report();">
+     <input type="button" value="Cancel" onclick="document.location.href = 'schedules'" >
+  </div>
+
+<h3>Daily Tracker</h3>
+Date &nbsp; : &nbsp;<%=schedules[0].schedule_date.strftime('%m/%d/%Y')%>&nbsp;<%=schedules[0].schedule_date.strftime('%A')%>&nbsp;
+<%timeslot.each do |t|%> 
+<table>
+  <%if !@slot[t[:id]].nil? && @slot[t[:id]][:count] > 0 %>
+  <tr>
+    <th colspan=5><%=t[:name]%></th>
+  </tr>
+  <tr>
+    <th width="20%">Lastname</th>
+    <th width="20%">Firstname</th>
+    <th width="20%">Level</th>
+    <th width="20%">Teacher</th>
+    <th width="20%">Student's Signature</tdh
+  </tr>
+  <%end%>
+
+<% schedules.each do |s| %>
+<% if s.timeslot_id == t[:id]%>
+  <%
+  student_ids = Array.new
+  student_ids << s.student_1_id  
+  student_ids << s.student_2_id  
+  student_ids << s.student_3_id  
+  student_ids << s.student_4_id  
+  student_ids << s.student_5_id  
+  student_ids << s.student_6_id  
+  
+  %>
+  <%6.times do |i|%>
+  <%unless student_ids[i] == 0%>
+  <%student = Student.find(student_ids[i])%>
+  <%
+  payment = Payment.order("payment_date desc").find(:first,:conditions => ["student_id = ? and DATE_FORMAT(payment_date,'%Y-%m-%d') <= ?",student_ids[i],s.schedule_date])
+   if (payment.nil? || payment.blank?)
+   	   level = ''
+   else 	    
+   	   level =  Level.find(payment.level_id).level_name
+   end
+
+  %>
+  <%#level = (s.level_id == 0) ? '' : Level.find(s.level_id).level_name%>
+  <%#program = (s.program_id == 0) ? '' : Program.find(s.program_id).name%>
+  <%teacher = Staff.find(s.staff_id)%>
+  <tr>
+    <td ><%=student.lastname%></td>
+    <td ><%=student.firstname%></td>
+    <td ><%=level%></td>
+    <td ><%=teacher.lastname%>,&nbsp;<%=teacher.firstname%></td>
+    <td>&nbsp;</td>
+  </tr>
+  
+  <%end%> <%#unless%>
+  <%end%> <%#6.times%>
+<% end %>  
+<% end %> <%#schedules.each do %>
+
+</table>
+  <%if !@slot[t[:id]].nil? && @slot[t[:id]][:count] > 0 %>
+  <tr>
+    <td colspan=5>.&nbsp;&nbsp;</td>
+  </tr>
+  <%end%>
+<%end%> <%#timeslot%>
+
+<script>
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+  jQuery("#tracker_main").css("visibility","hidden"); 
+</script>
+

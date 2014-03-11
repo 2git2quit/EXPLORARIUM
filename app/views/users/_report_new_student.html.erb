@@ -1,0 +1,55 @@
+<h1><%=session[:company]%></h1>
+<div id="stylized-report" class="myreport">
+
+  <div id="report_buttons">
+     <input type="button" value="Print" onclick="print_report();">
+     <input type="button" value="Cancel" onclick="document.location.href = 'reports'" >
+  </div>
+
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Student</th>
+    <th>Registration Date</th>
+    <th>Program</th>
+    <th>Amount Paid + Registration Fee</th>
+  </tr>
+</thead>
+<tbody>
+<% students.each do |s| %>
+<%
+ payments = Payment.select('program_id as `program_id`,sum(amount_paid) as `amount_paid` , sum(newfee) as `newfee`').group("program_id").find(:all,:conditions => "student_id = #{s.id.to_i}")
+
+ programs = ''
+ amounts = 0
+ payments.each do |p|
+   programs = "#{programs} #{p.program.name}"
+   amounts = amounts.to_f + p.amount_paid.to_f + p.newfee.to_f
+ end
+%>
+  <tr>
+    <td style="font-size:10px"><%= s.lastname %>,&nbsp;<%= s.firstname%></td>
+    <td style="font-size:10px"><%=  s.registration_date.strftime('%m/%d/%Y') unless s.registration_date.nil? %></td>
+    <td style="font-size:10px"><%= programs %></td>
+    <td style="font-size:10px"><%= number_with_precision(amounts, :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+  </tr>
+<% end %>
+
+</tbody>
+
+</table>
+
+<div style="position:absolute; top:10px;left:0px; font-family: verdana,arial,helvetica,sans-serif; font-size: 14px;font-weight:normal;">
+  <%=title%> (printed on <%=Time.now.strftime('%m/%d/%Y %H:%M')%>)
+</div>
+<div style="position:absolute; top:45px;right:100px; font-family: verdana,arial,helvetica,sans-serif; font-size: 12px;font-weight:bold;">
+  Number of Students&nbsp;&nbsp;:&nbsp;&nbsp;<%= students.size%>
+</div>
+
+<br />
+</div>
+<script>
+   jQuery('.report_table').dataTable({"bPaginate":false,"bFilter":false, "bInfo": false});
+   jQuery(".menu3").css("visibility","hidden"); 
+   jQuery(".menu3sub").css("visibility","hidden"); 
+</script>

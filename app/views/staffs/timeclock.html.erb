@@ -1,0 +1,40 @@
+<script>
+function ClockIn() 
+ {
+ var params = 'id=' + jQuery('#id').val() + '&password='+ jQuery('#password').val() ; 
+ AJC('/clock_in', "post", params);
+}
+
+function AJC(url, method, param)       {
+   var auth_token = '<%= protect_against_forgery? ? form_authenticity_token : ''%>';
+   params = 'authenticity_token=' + encodeURIComponent(auth_token);
+   if(param !== null)
+     params += "&"+param;
+     new Ajax.Request(url,
+  {asynchronous:true,
+  evalScripts:true,
+  method:method,
+  onComplete:function(request){ if (fnComplete) fnComplete(request); else  HandleAjaxErrors(request); },
+  parameters:params
+  }
+     );
+  
+  return false;
+   }
+</script>
+
+<div id="clock3" class="form-signin" style="max-width: 600px;height:180px;" ></div>
+
+
+<div class="container" >
+      <form class="form-signin" action="" method="post">
+        <h2 class="form-signin-heading" style="font-size:36px;">Please sign in</h2>
+        <input type="text" class="input-block-level" id="id" name="staff[id]" placeholder="Employee ID">
+        <input type="password" class="input-block-level" id="password" name="staff[password]" placeholder="Password"><br>
+        <button class="btn-large btn-primary" style="font-size:36px;" type="button" onclick="ClockIn()">Sign in</button>
+      </form>
+
+</div> <!-- /container -->
+
+
+<div  class="form-signin"  id="clocked"></div>

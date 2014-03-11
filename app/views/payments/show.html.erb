@@ -1,0 +1,45 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Student:</b>
+  <%= @payment.student_id %>
+</p>
+
+<p>
+  <b>Pr no:</b>
+  <%= @payment.pr_no %>
+</p>
+
+<p>
+  <b>Status:</b>
+  <%= @payment.status %>
+</p>
+
+<p>
+  <b>Program:</b>
+  <%= @payment.program_id %>
+</p>
+
+<p>
+  <b>Level:</b>
+  <%= @payment.level_id %>
+</p>
+
+
+<p>
+  <b>Amount paid:</b>
+  <%= @payment.amount_paid %>
+</p>
+<p>
+  <b>New Student Fee:</b>
+  <%= @payment.newfee %>
+</p>
+
+<p>
+  <b>Payment details:</b>
+  <%= @payment.payment_details %>
+</p>
+
+
+<%= link_to 'Edit', edit_payment_path(@payment) %> |
+<%= link_to 'Back', payments_path %>

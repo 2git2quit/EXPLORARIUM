@@ -1,0 +1,42 @@
+<div id="stylized" class="mylist">
+
+<h3>Program Info <input type="button" value="New Level" onclick="document.location.href = '/levels/new'" ></h3>
+<table id="example">
+  <thead> 
+  <tr>
+    <th>Level code</th>
+    <th>Level name</th>
+    <th></th>
+    <th></th>
+  </tr>
+ </thead>
+ <tbody> 
+<% @levels.each do |level| %>
+    <% 
+    p = Payment.find(:all,:conditions => ["level_id = ?" , level.id])
+    a = Attendance.find(:all,:conditions => ["level_id = ?" , level.id])
+       no_dependent = p.size + a.size
+    %>
+
+  <tr>
+    <td><%= level.level_code %></td>
+    <td><%= level.level_name %></td>
+    <td width="5%"><%= link_to 'Edit', edit_level_path(level) %></td>
+    <%if ( (session[:role].eql? "MANAGEMENT" ) && (no_dependent == 0)  )%>
+         <td width="5%"><%= link_to 'Delete', "/levels/#{level.id}/destroy" %></td>
+    <%else%>
+      <td></td>
+    <%end%>
+
+    
+  </tr>
+  
+<% end %>
+</tbody>
+</table>
+
+<br />
+</div>
+<%#= link_to 'New Level', new_level_path %>
+
+

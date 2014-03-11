@@ -1,0 +1,111 @@
+<%    
+months = ['JANUARY','FEBRUARY','MARCH', 'APRIL', 'MAY', 'JUNE','JULY', 'AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
+%>
+<h1><%=session[:company]%></h1>
+<h3><%=title%></h3>
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Registration Date</th>
+    <th>Validity Date</th>
+    <th>Student</th>
+    <th>Program</th>
+    <th>Status (under this month only)</th> 
+    <th>Current Status</th>
+    <th></th>
+  </tr>
+</thead>
+<tbody>
+<%total = 0%>
+<% objects.each do |s| %>
+<% test1 = (s.student.status.nil?) && (s.student.getStatus(s.payment_date)==2 || s.student.getStatus(s.payment_date)==3 || s.student.getStatus()==2 || s.student.getStatus()==3)  %>
+<% test2 = (!s.student.status.nil?) && (s.student.status==2 || s.student.status==3 )%>
+<%# if (test1 || test2) %>
+    <tr>
+    <td style="font-size:10px"><%= s.payment_date.strftime('%m/%d/%Y') %></td>
+    <td style="font-size:10px"><%= s.valid_date.strftime('%m/%d/%Y') %></td>
+    <td style="font-size:10px"><%= s.student.lastname %>,&nbsp;<%= s.student.firstname %></td>
+    <td style="font-size:10px"><%= s.program.name %></td>
+    <td style="font-size:10px"><%= @status[s.student.getPrevStatus(s.valid_date)][:name]%></td>
+    <td style="font-size:10px"><%= @status[s.student.getStatus()][:name]%></td>
+    <td style="font-size:10px;visibility:hidden"><%= s.payment_date.strftime('%Y%m%d') %></td>
+  </tr>
+  
+  <%total = total +  1%>
+  <% prev_month = s.payment_date.strftime('%B %Y')%>
+<%#end%>
+<% end %>
+
+</tbody>
+
+<tfoot>
+  <tr>
+    <td>TOTAL</td>
+    <td></td>
+    <td></td>
+    <td><%=total%></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tfoot>
+
+</table>
+
+<script>
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "aoColumns": [
+               null,
+               null,
+               null,
+               null,
+               null,
+              {"bVisible": false}
+            ],
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+    	     
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+    
+   var oTable = jQuery('.report_table').dataTable();
+   oTable.fnSort( [ [5,'asc'] ] );
+  jQuery("#alerts").css("visibility","hidden"); 
+</script>
+

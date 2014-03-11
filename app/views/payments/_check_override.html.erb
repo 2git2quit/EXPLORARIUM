@@ -1,0 +1,8 @@
+
+  <div position: relative;top:10px><h2><%=validation_error%><br><br></h2>
+  <% if validation_error.nil? %>
+  <script>
+    jQuery('#override').css('visibility','hidden')
+  </script>
+  <%end%>
+

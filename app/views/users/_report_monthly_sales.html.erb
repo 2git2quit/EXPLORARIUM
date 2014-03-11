@@ -1,0 +1,93 @@
+<h1><%=session[:company]%></h1>
+<%    
+months = ['JANUARY','FEBRUARY','MARCH', 'APRIL', 'MAY', 'JUNE','JULY', 'AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
+%>
+<div id="total"><h3><%=title%> &nbsp;&nbsp;TOTAL : </h3></div>
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Year</th>
+    <th>Month</th>
+    <th>Tuition Fee</th>
+    <th>Registration Fee</th>
+    <th>Other Charges</th>
+</tr>
+</thead>
+<tbody>
+<%total_amount_paid = 0.00%>
+<%total_newfee = 0.00%>
+<%total_charges = 0.00%>
+<% objects.each do |p| %>
+  <tr>
+    <td style="font-size:10px"><%= p.yy%></td>
+    <td style="font-size:10px"><%= months[p.mm - 1]%> </td>
+    <td style="font-size:10px"><%= number_with_precision(p.amount_paid, :precision => 2 ,:delimiter => "#{session[:delimiter]}") %></td>
+    <td style="font-size:10px"><%= number_with_precision(p.newfee, :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+    <td style="font-size:10px"><%= number_with_precision(p.charges, :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+    
+    <%total_amount_paid = total_amount_paid.to_f + p.amount_paid.to_f%>
+    <%total_newfee = total_newfee.to_f + p.newfee.to_f%>
+ <%total_charges = total_charges.to_f + p.charges.to_f%>    
+  </tr>
+<% end %>
+
+</tbody>
+<tfoot>
+  <tr>
+    <td>TOTAL</td>
+    <td></td>
+    <td><%=number_with_precision(total_amount_paid, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+    <td><%=number_with_precision(total_newfee, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+    <td><%=number_with_precision(total_charges, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></td>
+  </tr>
+</tfoot>
+
+</table>
+<%total=total_amount_paid+total_newfee+total_charges%>
+<script>
+
+ jQuery("#total").html('<h3><%=title%> &nbsp;&nbsp;TOTAL : <div style="border:1px solid #000; display:inline-block;"><%=number_with_precision(total, :precision => 2 , :delimiter => "#{session[:delimiter]}")%></div<</h3>');
+ TableTools.BUTTONS.print = jQuery.extend( true, TableTools.buttonBase, {
+	"sNewLine": "<br>",
+	"sButtonText": "Print Report",
+	"sDiv": "",
+	"fnClick": function( nButton, oConfig ) { 
+          jQuery(".menu3").css("visibility","hidden"); 
+          jQuery(".menu3sub").css("visibility","hidden"); 
+          jQuery("#filters").css("visibility","hidden"); 
+          jQuery(".DTTT_container").css("visibility","hidden");
+	  jQuery("#dtable").css("top","-50px");
+          window.print();
+          jQuery(".menu3").css("visibility","visible"); 
+          jQuery(".menu3sub").css("visibility","visible"); 
+          jQuery("#filters").css("visibility","visible"); 
+          jQuery(".DTTT_container").css("visibility","visible");
+	  jQuery("#dtable").css("top","0px");
+	}
+   } );
+ 
+    jQuery('.report_table').dataTable( 
+    	 {
+   	   "bPaginate":false,
+   	   "bFilter":false, 
+   	   "bInfo": false ,
+    	   "sDom": 'T<"clear">lfrtip' ,
+    	   "oTableTools": {   
+    	     "sSwfPath": "copy_csv_xls_pdf.swf"  ,
+             "aButtons": [
+				{
+					"sExtends":    "print",
+					"sButtonText": "Print Report",
+					"sDiv":        "copy",
+				},
+				{
+					"sExtends": "xls",
+					"sButtonText": "Export to Excel"
+				}
+			]
+	   }
+         } 
+         );
+  jQuery("#alerts").css("visibility","hidden"); 
+</script>
+

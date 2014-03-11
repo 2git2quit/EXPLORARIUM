@@ -1,0 +1,44 @@
+<div id="stylized" class="mylist">
+
+<h3>Program Info <input type="button" value="New Program" onclick="document.location.href = '/programs/new'" ></h3>
+<table id="example">
+<thead>
+  <tr>
+    <th>Name</th>
+    <th>Tuition Fee</th>
+    <th>Number of sessions</th>
+    <th>Hours per session</th>
+    <th>Registration fee</th>
+    <th></th>
+    <th></th>
+  </tr>
+  </thead>
+
+ <tbody>
+<% @programs.each do |program| %>
+    <% 
+    p = Payment.find(:all,:conditions => ["program_id = ?" , program.id])
+    a = Attendance.find(:all,:conditions => ["program_id = ?" , program.id])
+       no_dependent = p.size + a.size
+    %>
+  <tr>
+    <td><%= program.name %></td>
+    <td><%= number_with_precision(program.cost, :precision => 2, :delimiter => session[:delimiter] )%></td>
+    <td><%= program.number_of_sessions %></td>
+    <td><%= program.hours_per_session %></td>
+    <td><%= number_with_precision(program.new_student_fee, :precision => 2, :delimiter => session[:delimiter] )%></td>
+    <td><%= link_to 'Edit', edit_program_path(program) %></td>
+    <%if ( (session[:role].eql? "MANAGEMENT" ) && (no_dependent == 0)  )%>
+         <td width="5%"><%= link_to 'Delete', "/programs/#{program.id}/destroy" %></td>
+    <%else%>
+      <td></td>
+    <%end%>
+  </tr>
+<% end %>
+</tbody>
+
+</table>
+
+<br />
+</div>
+<%#= link_to 'New Program', new_program_path %>

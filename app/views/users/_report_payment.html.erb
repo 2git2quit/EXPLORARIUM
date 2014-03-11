@@ -1,0 +1,52 @@
+<h1><%=session[:company]%></h1>
+<div id="stylized-report" class="myreport">
+
+  <div id="report_buttons">
+     <input type="button" value="Print" onclick="print_report();">
+     <input type="button" value="Cancel" onclick="document.location.href = 'reports'" >
+  </div>
+
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Student</th>
+    <th>Program</th>
+    <th>Total Cost</th>
+    <th>Paid Amount</th>
+    <th>Balance</th>
+  </tr>
+</thead>
+
+<tbody>
+<% total_unpaid = 0 %>  
+<% notices.each do |notice| %>
+  <% unless ((notice[:total] - notice[:paid]) <= 0)%>
+  <%total_unpaid = total_unpaid + (notice[:total] - notice[:paid])%>
+  <tr>
+    <td style="font-size:10px"><%= notice[:lastname]%>,&nbsp;<%=notice[:firstname]%></td>
+    <td style="font-size:10px"><%= notice[:program].join(" , ")%></td>
+    <td style="font-size:10px"><%= number_with_precision(notice[:total], :precision => 2, :delimiter => "#{session[:delimiter]}")%></td>
+    <td style="font-size:10px"><%= number_with_precision(notice[:paid], :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+    <td style="font-size:10px"><%= number_with_precision(notice[:total] - notice[:paid], :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+  </tr>
+  <%end%>
+<% end %>
+</tbody>
+
+</table>
+
+<div style="position:absolute; top:10px;left:0px; font-family: verdana,arial,helvetica,sans-serif; font-size: 14px;font-weight:normal;">
+  <%=title%> (printed on <%=Time.now.strftime('%m/%d/%Y %H:%M')%>)
+</div>
+<div style="position:absolute; top:45px;right:100px; font-family: verdana,arial,helvetica,sans-serif; font-size: 12px;font-weight:bold;">
+  Total Unpaid&nbsp;&nbsp;:&nbsp;&nbsp;<%=number_with_precision(total_unpaid, :precision => 2,:delimiter => "#{session[:delimiter]}")%>
+</div>
+
+<br />
+</div>
+
+<script>
+   jQuery('.report_table').dataTable({"bPaginate":false,"bFilter":false, "bInfo": false});
+   jQuery(".menu3").css("visibility","hidden"); 
+   jQuery(".menu3sub").css("visibility","hidden"); 
+</script>

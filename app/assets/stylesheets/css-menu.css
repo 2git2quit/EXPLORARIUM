@@ -1,0 +1,44 @@
+
+div.menu3
+{
+    /*width:500px;margin:0 auto;*//*Uncomment this line to make the menu center-aligned.*/
+    text-align:center;
+    font-size:0;
+    height: 25px;    
+    *position:relative;*top:1px;/*Hacks for IE6 & IE7 */    
+    font-family:"Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif;
+}
+
+div.menu3 a
+{
+    display: inline-block;
+    padding: 0 10px;
+    margin-right:20px; /* It specifies the distance between each tab */
+    background:#ebf4fb;
+    color:Black;
+    text-decoration:none;
+    font-family:"Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif;
+    font: normal 12px Arial;
+    font-weight:bold;
+    line-height: 24px;
+    border:1px solid #CAD0DB;
+    border-bottom:0;
+    color:black;
+    vertical-align:top;/*ChangeSet#2*/
+    text-decoration:none;
+}
+
+div.menu3 a:hover, div.menu3 a.current
+{
+    background:#ebf4fb;
+    line-height: 25px;
+    color:#000;
+}
+
+div.menu3sub
+{
+    height:6px;
+    /*width: 1500px;*/
+    border:0px solid #CAD0DB;
+    background: #ebf4fb;
+}

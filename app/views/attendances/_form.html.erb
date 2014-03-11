@@ -1,0 +1,104 @@
+<script>
+function getAttendanceHistory() 
+ {
+  var params = 'session_date='+jQuery('#attendance_session_date').val()+"&student_id=" + jQuery('#attendance_student_id').val()+"&program_id="+jQuery('#attendance_program_id').val()+"&hours=0"+"&id="+jQuery('#attendance_id').val()+"&old_hours="+jQuery('#old_hours').val() ;
+  AJC('history', "post", params);
+}
+
+function getAttendanceHistoryEdit(EditMode) 
+ {
+  var params = 'edit=EditMode&'+"session_date="+jQuery('#attendance_session_date').val()+"&student_id="+ jQuery('#attendance_student_id').val()+"&program_id="+jQuery('#attendance_program_id').val()+ "&hours="+jQuery('#attendance_hours').val()+"&id="+jQuery('#attendance_id').val()+"&old_hours="+jQuery('#old_hours').val() ;
+ AJC('history', "post", params);
+}
+
+</script>
+
+<div id="stylized" class="myform">
+
+<%= form_for(@attendance) do |f| %>
+<h1>ATTENDANCE SHEET</h1>
+<p>Data entry page for attendance record</p>
+<div class="errormsg" <%if @validates.nil? %>style="visibility:hidden" <%end%> >es
+  <div id="msg" style="position: fixed;padding-top:55px;top:100px;border:2px solid;box-shadow: 10px 10px 5px blue;  min-height:30px ; min-width: 750px;background: #81DAF5">
+  <% unless @validates.nil?%>
+  <% @validates.each do |k,v|%>
+     <%=Attendance.human_attribute_name(k)%>&nbsp;<%=v%><br><br>
+  <% end %>
+  <br>
+  <%end%>
+  <input type="button" value="Ok" onclick="jQuery('.errormsg').css('visibility','hidden') ;" >
+  </div> 
+</div>
+
+  <%=f.hidden_field :id%>
+
+  <label><%= f.label :student_id %>
+    <span class="small">Select student</span>
+  </label>
+  <% if @attendance.new_record?  %>
+       <%=  select("attendance", "student_id", @students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, { :prompt => 'Select' }, :onChange => 'getAttendanceHistory()' , :required => true )  %>
+  <% else %>    
+       <%=  select("attendance", "student_id", @students.collect {|p| [ "#{p.lastname}, #{p.firstname}", p.id ] }, { :prompt => 'Select' }, :onChange => 'getAttendaceHistory()' , :required => true ,  :selected => @attendance.student_id , :disabled => true)  %>
+       <input type="hidden" name="attendance[student_id]" value="<%=@attendance.student_id%>">
+  <% end %>   
+ 
+  <label><%= f.label :program_id %>
+    <span class="small">Program</span>
+  </label>
+  <%=  select("attendance", "program_id", @programs.collect {|p| [ p.name, p.id ] }, { :prompt => 'Select' }, :onChange => 'getAttendanceHistory()' , :required => true, :selected => @attendance.program_id) %>
+
+    <label><%= f.label :hours %>
+    <span class="small">Hours</span>
+  </label>
+  <input id="attendance_hours" type="text" name="attendance[hours]" required value="<%=@attendance.hours%>" class="numeric" onchange="getAttendanceHistoryEdit(<%= @attendance.new_record?%>)">
+  <input id="old_hours" type="hidden" name="old_hours" value="<%=@attendance.hours%>" >
+  
+
+  <label><%= f.label :session_date %>
+    <span class="small">Date</span>
+  </label>
+  
+  <input id="attendance_session_date" class="datepicker" name="attendance[session_date]" required value="<%=@attendance.session_date.nil? ? '' : @attendance.session_date.strftime('%m/%d/%Y')%>" type="text">
+
+
+<div id="attendance_history">
+ <label><%= "TOTAL HOURS" %>
+     <span class="small">Total hours consumed</span>
+  </label> 
+
+ <%  
+   unless @attendance.new_record? 
+     student = Student.find(@attendance.student_id) 
+     options = Hash.new
+     options[:old_hours] = params[:old_hours].to_f
+     options[:new_hours] = params[:hours].to_f
+     
+     stat,msgs,billing = student.to_be_billed?(options)
+   else
+   	   billing = Hash.new  
+   	   billing[:attended_hours] = 0
+   	   billing[:expected_hours] = 0
+   	   msgs = Array.new
+   end  
+  %>
+
+<input type="text"  class="numeric" style="width:50px" disabled value="<%=(number_with_precision(billing[:attended_hours], :precision => 2, :delimiter => session[:delimiter] ) || 0)%>" >
+
+<label><%= "EXPECTED HOURS" %>
+     <span class="small">Total hours expected</span>
+</label> 
+<input type="text"  class="numeric" style="width:50px" disabled value="<%=(number_with_precision(billing[:expected_hours], :precision => 2, :delimiter => session[:delimiter]) || 0)%>" >
+
+<div class="errormsg" <%if msgs.empty? %>style="visibility:hidden" <%end%> >
+  <div id="msg" style="position: fixed;padding-top:25px;top:300px;border:2px solid;box-shadow: 10px 10px 5px blue;  width: 750px;background: #81DAF5">
+   <%=msgs.inspect%><br><br>
+   <input type="button" value="Ok" onclick="jQuery('.errormsg').css('visibility','hidden') ;" >
+  </div> 
+</div>
+
+</div>
+
+<div><input name="commit" type="submit" value="Save" ><input type="button" value="Cancel" onclick="document.location.href = '../../attendances'" ></div>   
+
+
+<% end %>

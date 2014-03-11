@@ -1,0 +1,50 @@
+  <%#unless local_assigns[:history].nil?  %>
+  <label><%= "Payments History" %></label>
+ <div >
+  <table id="history">
+  <thead>
+  <tr>
+    <th></th>
+    <th>Date</th>
+    <th>PR No.</th>
+    <th>Program</th>
+    <th>Amount</th>
+    <th>Month(s) covered</th>
+  </tr>
+  </thead>
+  <tbody>
+      <% i = 0%>
+      <%local_assigns[:history].each do |h|%>
+        <tr>
+        <td><%=i+1%></td>
+        <td><%=h.payment_date.strftime("%m/%d/%Y")%></td>
+        <td><%=h.pr_no%></td>
+        <td><%=h.program.name%></td>
+        <td><%=h.amount_paid%></td>
+        <td>
+        <% h.month_covered.each do |mc| %><%=mc.month%> , <%end%>
+        </td>
+        </tr>
+         <% i = i+1%>
+         <script>updateTableIndex(<%=i%>)</script>
+      <% end %>  
+  </tbody>  
+  </table>
+  <br />
+  </div>
+  <%#end%>
+  
+  <script>
+  jQuery(document).ready(function() {
+	jQuery('#history').dataTable( {
+		"bPaginate": false,
+		"bLengthChange": true,
+		"bFilter": false,
+		"bSort": true,
+		"bInfo": true,
+		"bAutoWidth": true
+		});
+ 
+ } );
+  </script>
+ 

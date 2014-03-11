@@ -1,0 +1,31 @@
+<h1>Listing ars</h1>
+
+<table>
+  <tr>
+    <th>Student</th>
+    <th>Program</th>
+    <th>Level</th>
+    <th>Amount</th>
+    <th>Newfee</th>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @ars.each do |ar| %>
+  <tr>
+    <td><%= ar.student_id %></td>
+    <td><%= ar.program_id %></td>
+    <td><%= ar.level_id %></td>
+    <td><%= ar.amount %></td>
+    <td><%= ar.newfee %></td>
+    <td><%= link_to 'Show', ar %></td>
+    <td><%= link_to 'Edit', edit_ar_path(ar) %></td>
+    <td><%= link_to 'Destroy', ar, :method => :delete, :data => { :confirm => 'Are you sure?' } %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New Ar', new_ar_path %>

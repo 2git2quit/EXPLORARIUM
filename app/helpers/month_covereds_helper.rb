@@ -1,0 +1,2 @@
+module MonthCoveredsHelper
+end

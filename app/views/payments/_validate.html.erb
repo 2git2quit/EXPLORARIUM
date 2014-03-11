@@ -1,0 +1,21 @@
+
+<div id="override" style="position: fixed;padding-top:25px;top:150px;visibility:visible;border:2px solid;box-shadow: 10px 10px 5px blue; width: 450px;background: #81DAF5">
+ <input type=hidden  name="user[path]" value=<%=@path%>>
+ <label><%= "Username" %>
+    <span class="small">User login</span>
+  </label>
+  <input type="text" class="nocaps" id="override_username" name="override_username" value="">
+  <label><%= "Password" %>
+    <span class="small">Secret password</span>
+  </label>
+  <input type="password" class="nocaps" id="override_password"  name="override_password" value="" required>
+  <label><%= "Reason for Override" %>
+    <span class="small"></span>
+  </label>
+  <input type="text" class="nocaps"  id="override_reason"  name="override_reason" value="" required>
+  <input type="button" value="Ok" onclick="checkOverride(); ">
+  <input type="button" value="Cancel" onclick="jQuery('#override').css('visibility','hidden') ;" >
+  <br>
+  <div id="over"></div>
+</div>
+

@@ -1,0 +1,71 @@
+
+<div id="stylized-report" class="myreport">
+
+  <div id="report_buttons">
+     <input type="button" value="Print" onclick="print_report();">
+     <input type="button" value="Cancel" onclick="document.location.href = 'reports'" >
+  </div>
+
+<table class="report_table">
+<thead>
+  <tr>
+    <th>Student</th>
+    <th>Program</th>
+    <th>Level</th>
+    <th>Hours attended</th>
+    <th>Hours expected</th>
+    <th>Payments Made</th>
+    <th>Program Cost</th>
+    <th>End Date</th>
+  </tr>
+</thead>
+<tbody>
+<% @attendances.each do |attendance| %>
+<% 
+  program = Program.find("#{attendance.program_id}") 
+  payments = Payment.find(:all,:conditions => "student_id = #{attendance.student_id} and program_id = #{attendance.program_id} ")
+  total = 0
+  valid_date_arr = Array.new
+  payments.each do |payment|
+    total = total + payment.amount_paid
+    unless payment.valid_date.nil?
+       valid_date_arr << payment.valid_date
+    end   
+  end
+  program_count = total.to_f / program.cost.to_f  
+  expected = program.number_of_sessions.to_f * program.hours_per_session.to_f
+  hours_expected = expected.to_f * program_count.to_f
+  sess_date = attendance.session_date
+  valid_date = valid_date_arr.empty? ? sess_date -1  : valid_date_arr.max
+%>
+  <%if ( (attendance.total_hours.to_f > (expected.to_f * program_count.to_f)) || (valid_date < sess_date) )%>
+  <tr>
+    <td style="font-size:10px"><%= attendance.student.firstname %>&nbsp;<%= attendance.student.lastname %></td>
+    <td style="font-size:10px"><%= attendance.program.name %></td>
+    <td style="font-size:10px"><%= attendance.level.level_name %></td>
+    <td style="font-size:10px"><%= number_with_precision(attendance.total_hours, :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+    <td style="font-size:10px"><%= number_with_precision((hours_expected), :precision => 2,:delimiter => "#{session[:delimiter]}") %></td>
+    <td style="font-size:10px"><%= number_with_precision((total), :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+    <td style="font-size:10px"><%= number_with_precision((program.cost), :precision => 2, :delimiter => "#{session[:delimiter]}") %></td>
+    <td style="font-size:10px"><%= valid_date_arr.empty? ? '' : valid_date_arr.max.strftime('%m/%d/%Y')%></td>
+  </tr>
+  <%end%>
+<% end %>
+
+</tbody>
+
+</table>
+
+<div style="position:absolute; top:10px;left:0px; font-family: verdana,arial,helvetica,sans-serif; font-size: 14px;font-weight:normal;">
+  <%=title%> (printed on <%=Time.now.strftime('%m/%d/%Y %H:%M')%>)
+</div>
+<div style="position:absolute; top:45px;right:100px; font-family: verdana,arial,helvetica,sans-serif; font-size: 12px;font-weight:bold;">
+</div>
+
+<br />
+</div>
+<script>
+   jQuery('.report_table').dataTable({"bPaginate":false,"bFilter":false, "bInfo": false});
+   jQuery(".menu3").css("visibility","hidden"); 
+   jQuery(".menu3sub").css("visibility","hidden"); 
+</script>
